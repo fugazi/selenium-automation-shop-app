@@ -259,7 +259,9 @@ class CartOperationsTest extends BaseTest {
                     .as("Should navigate away from cart page")
                     .doesNotContain("/cart");
 
-            Assertions.assertNotNull(currentUrl);
+            softly.assertThat(currentUrl)
+                    .as("Current URL should not be null")
+                    .isNotNull();
             softly.assertThat(currentUrl.contains("/products") || currentUrl.endsWith("/"))
                     .as("Should be on products or home page")
                     .isTrue();

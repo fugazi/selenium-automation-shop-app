@@ -254,8 +254,8 @@ class AddToCartTest extends BaseTest {
             SoftAssertions.assertSoftly(softly -> softly.assertThat(currentUrl)
                     .as("Should remain on product page or redirect to login")
                     .satisfiesAnyOf(
-                        url -> assertThat(url).contains("/products/"),
-                        url -> assertThat(url).contains("/login")
+                        url -> softly.assertThat(url).contains("/products/"),
+                        url -> softly.assertThat(url).contains("/login")
                     ));
 
             log.info("Added product from index 2: '{}', now at: {}", productTitle, currentUrl);

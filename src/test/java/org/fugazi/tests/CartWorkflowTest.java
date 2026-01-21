@@ -40,7 +40,7 @@ class CartWorkflowTest extends BaseTest {
         performLogin();
     }
 
-    // TODO: Extract to BaseTest and use LoginPage in future iteration
+    // TODO: Refactorize
     private void performLogin() {
         log.info("Step 1: Navigating to login page");
         try {
@@ -48,7 +48,7 @@ class CartWorkflowTest extends BaseTest {
         } catch (Exception e) {
             log.warn("Initial navigation failed, retrying: {}", e.getMessage());
             // Use WebDriverWait instead of Thread.sleep (framework compliance)
-            var retryWait = new WebDriverWait(driver, java.time.Duration.ofSeconds(2));
+            var retryWait = new WebDriverWait(driver, Duration.ofSeconds(2));
             try {
                 retryWait.until(d -> false);  // Wait for timeout without action
             } catch (org.openqa.selenium.TimeoutException te) {

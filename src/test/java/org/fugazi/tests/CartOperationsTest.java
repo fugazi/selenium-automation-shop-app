@@ -10,6 +10,7 @@ import io.qameta.allure.Story;
 
 import org.assertj.core.api.SoftAssertions;
 import org.fugazi.config.ConfigurationManager;
+import org.fugazi.data.models.Credentials;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -63,7 +64,7 @@ class CartOperationsTest extends BaseTest {
                 driver.getCurrentUrl());
     }
 
-    // TODO: Extract to BaseTest and use LoginPage in future iteration
+    // TODO: Refactorize
     private void performLogin() {
         log.info("Step 1: Navigating to login page");
         try {
@@ -90,9 +91,9 @@ class CartOperationsTest extends BaseTest {
 
         // Use constant credentials instead of hardcoded values (code quality improvement)
         emailInput.clear();
-        emailInput.sendKeys(org.fugazi.data.models.Credentials.CUSTOMER_CREDENTIALS.email());
+        emailInput.sendKeys(Credentials.CUSTOMER_CREDENTIALS.email());
         passwordInput.clear();
-        passwordInput.sendKeys(org.fugazi.data.models.Credentials.CUSTOMER_CREDENTIALS.password());
+        passwordInput.sendKeys(Credentials.CUSTOMER_CREDENTIALS.password());
         submitButton.click();
 
         // Wait for login to complete
@@ -264,6 +265,7 @@ class CartOperationsTest extends BaseTest {
             softly.assertThat(currentUrl)
                     .as("Current URL should not be null")
                     .isNotNull();
+            Assertions.assertNotNull(currentUrl);
             softly.assertThat(currentUrl.contains("/products") || currentUrl.endsWith("/"))
                     .as("Should be on products or home page")
                     .isTrue();

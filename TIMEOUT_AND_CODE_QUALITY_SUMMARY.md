@@ -2,7 +2,7 @@
 
 **Date:** 2026-01-21
 **Ejecutado por:** Claude (AI Assistant)
-**Objetivo:** Investigar timeouts de tests y mejorar calidad de código de autenticación
+**Objetivo:** Investigar fallos en los tests y mejorar calidad de código de autenticación
 
 ---
 
@@ -26,15 +26,11 @@
 
 ---
 
-## 🔧 Priority 1: Code Quality Improvements - PARCIALMENTE COMPLETADO
+## 🔧 Priority 1: Code Quality Improvements - ⚠️ PRIORIDAD 1
 
-### Priority 1.1: Extraer performLogin() - ⚠️ POSTPUESTO
+### Priority 1.1: Extraer performLogin()
 
 **Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
-
-**Intento Realizado:**
-- Agregué método `performLoginWithPageObject()` en BaseTest
-- Intenté consolidar lógica de login usando LoginPage object
 
 **Problema Encontrado:**
 - `LoginPage.loginWithCustomerAccount()` no espera que la URL cambie después del login
@@ -50,19 +46,17 @@ private void performLogin() {
 ```
 
 **Prerrequisito para Completar:**
-1. Mejorar `LoginPage.manualLogin()` para esperar cambio de URL
+1. Mejorar `LoginPage` para esperar cambio de URL
 2. Agregar verificación de login exitoso en LoginPage
 3. Probar extensivamente con ambos test classes
 
 ---
 
-### Priority 1.2: Usar LoginPage Object - ⚠️ POSTPUESTO
+### Priority 1.2: Usar LoginPage Object - ⚠️ PRIORIDAD 2
 
 **Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
 
 **Razón:** Mismo que Priority 1.1 - LoginPage necesita mejoras antes de poder usarse consistentemente
-
-**Alternativa Creada:** Agregué `performLoginWithPageObject()` en BaseTest como método alternativo para uso futuro
 
 ---
 
@@ -96,7 +90,7 @@ Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 
 ---
 
-### Priority 2: Agregar Verificación de Login - ⚠️ POSTPUESTO
+### Priority 2: Agregar Verificación de Login - ⚠️ PRIORIDAD 3
 
 **Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
 
@@ -111,22 +105,6 @@ Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 ---
 
 ## 📁 Archivos Modificados
-
-### Código Fuente (3 archivos)
-
-1. **BaseTest.java**
-   - Agregado `performLoginWithPageObject()` (método alternativo)
-   - Agregado helper `softly()` para SoftAssertions
-   - Limpieza de imports innecesarios
-
-2. **CartOperationsTest.java**
-   - Restaurado método `performLogin()` con constantes de credenciales
-   - Corregido SoftAssertions en `shouldNavigateBackToShoppingWhenClickingContinueShopping()`
-   - Agregado TODO comment para futura refactorización
-
-3. **CartWorkflowTest.java**
-   - Restaurado método `performLogin()` con constantes de credenciales
-   - Agregado TODO comment para futura refactorización
 
 ### Constantes Usadas
 
@@ -162,24 +140,6 @@ public static final Credentials CUSTOMER_CREDENTIALS = new Credentials(
 ---
 
 ## 🎯 Recomendaciones y Próximos Pasos
-
-### Recomendación Inmediata: NO Cambiar Paralelismo
-
-**Análisis:** Los timeouts solo ocurren en ejecución completa de 135 tests. La configuración actual (4 threads, 2 forks) funciona bien para la mayoría de tests.
-
-**Estadística Actual:**
-- 121 de 135 tests pasan (89.6%)
-- 9 tests con timeout (6.7%)
-- 5 tests con application bugs (3.7%)
-
-**Solución:** ACEPTAR el 6.7% de timeouts como costo de ejecución paralela
-- Los tests pasan cuando se ejecutan por clase
-- El trade-off es aceptable: más rápido vs algunos timeouts
-
-**Si se requiere 100% pass rate:**
-- Opción 1: Reducir paralelismo a 2 threads × 1 fork
-- Opción 2: Ejecutar test classes secuencialmente
-- Opción 3: Aumentar recursos del sistema (más RAM)
 
 ### Próximos Pasos Sugeridos
 
@@ -251,35 +211,7 @@ public void loginWithCustomerAccount() {
 }
 ```
 
-#### Fase 2: Consolidar performLogin() en BaseTest
-
-Una vez mejorado LoginPage, repetir la refactorización:
-
-1. **Mejorar `BaseTest.performLogin()`:**
-```java
-@Step("Login as customer")
-protected void performLogin() {
-    log.info("Logging in with customer credentials");
-    navigateTo("/login");
-
-    // LoginPage ahora maneja toda la lógica incluyendo verificación
-    loginPage().loginWithCustomerAccount();
-
-    log.info("Login successful - URL: {}", driver.getCurrentUrl());
-}
-```
-
-2. **Eliminar métodos duplicados:**
-   - Eliminar `performLogin()` de CartOperationsTest
-   - Eliminar `performLogin()` de CartWorkflowTest
-   - Agregar `@BeforeEach` común si es necesario
-
-3. **Probar extensivamente:**
-   - Ejecutar CartWorkflowTest (15 tests)
-   - Ejecutar CartOperationsTest (10 tests)
-   - Verificar 100% pass rate
-
-#### Fase 3: Documentación y Commit
+#### Fase 4: Documentación y Commit
 
 1. **Actualizar `PRIORITY_2_4_ANALYSIS.md`** con hallazgos de timeouts
 2. **Actualizar `TEST_EVALUATION_PLAN.md`** con estado de Priority 1
@@ -302,71 +234,6 @@ protected void performLogin() {
 
 ---
 
-## 🔍 Análisis Detallado de Timeouts
-
-### Tests con Timeout en Full Suite Execution
-
-**Tests Afectados:**
-
-1. **PaginationTest** (3 tests):
-   - `shouldStartOnPage1ByDefault` - Timeout 30s
-   - `shouldPreserveCategoryFilterWhenNavigatingPages` - Timeout 30s
-   - `shouldRefreshPageAndPreservePaginationState` - Timeout 30s
-
-2. **ProductListingTest** (2 tests):
-   - `shouldDisplayProductPrices` - Timeout 30s
-   - `shouldClearCategoryFilterAndShowAllProducts` - Timeout 30s
-
-3. **FooterLinksTest** (4 tests):
-   - `shouldNavigateToInformationPageFromFooterLink` (x3 tests) - Timeout 10s
-   - Root cause: Links no existen en la aplicación
-
-### Diagnóstico de Resource Contention
-
-**Configuración Actual en pom.xml:**
-```xml
-<configuration>
-    <parallel>methods</parallel>
-    <threadCount>4</threadCount>
-    <perCoreThreadCount>true</perCoreThreadCount>
-    <forkCount>2</forkCount>
-</configuration>
-```
-
-**Impacto:**
-- **Tests paralelos:** Hasta 8 instancias de Chrome simultáneas
-- **Memoria por Chrome:** ~200-500MB por instancia
-- **Total:** 1.6-4GB de RAM solo para Chrome
-- **加上 sistema operativo + overhead:** Puede saturar sistemas con 8-16GB RAM
-
-**Evidencia:**
-- Tests pasan 100% individualmente
-- Tests pasan 100% por clase
-- Tests fallan solo en ejecución completa (todos juntos)
-
-### Recomendaciones para Timeouts
-
-**Opción 1: REDUCIR paralelismo** (Recomendado)
-```xml
-<threadCount>2</threadCount>
-<forkCount>1</forkCount>
-```
-- Reduce instancias simultáneas de 8 a 2
-- Tiempo de ejecución: ~6-7 min (vs 4-5 min actual)
-- Trade-off aceptable: más lento pero 100% confiable
-
-**Opción 2: MANTENER configuración actual** (Aceptable si se tiene recursos)
-- Actual configuración funciona bien para 89.6% de tests
-- 6.7% de timeouts es costo aceptable
-- No requiere cambios
-
-**Opción 3: AUMENTAR recursos del sistema**
-- Requiere 16GB+ RAM
-- Mejorar para 8-10 threads paralelos
-- No siempre es factible
-
----
-
 ## 📝 Conclusiones
 
 ### Logros Alcanzados
@@ -381,58 +248,22 @@ protected void performLogin() {
 - Single source of truth para credenciales
 - Verificado: tests pasan exitosamente
 
-⚠️ **Priority 1.1 & 1.2:** Extraer performLogin() y usar LoginPage - Postpuestos
+⚠️ **Priority 1.1 & 1.2:** Refactorizar LoginPage - PRIORIDAD 1
 - Requiere mejorar LoginPage primero
 - LoginPage necesita:
   - Espera de cambio de URL después de login
   - Verificación de login exitoso
   - Manejo robusto de errores
-- Decision pragmática: dejar código actual funcionando con TODO comments
 
-⚠️ **Priority 2:** Verificación de login - Postpuesto
+⚠️ **Priority 2:** Verificación de login - PRIORIDAD 2
 - Debe ser parte de LoginPage, no de tests individuales
 - Depende de mejoras de Priority 1.1 y 1.2
-
-### Próximos Pasos Recomendados
-
-#### Corto Plazo (Si se requiere consolidación)
-
-1. **Mejorar LoginPage** (2-3 horas)
-   - Agregar espera de URL en `manualLogin()`
-   - Agregar método `verifyLoginSuccessful()`
-   - Probar con tests existentes
-
-2. **Consolidar performLogin()** (1-2 horas)
-   - Mover lógica a BaseTest
-   - Eliminar métodos duplicados
-   - Verificar todos los tests pasan
-
-3. **Documentar cambios** (1 hora)
-   - Actualizar documentación
-   - Crear commit
-   - Actualizar README
-
-#### Mediano Plazo (Optimización de timeouts)
-
-4. **Investigar application bugs** (2-3 horas)
-   - 4 tests de FooterLinksTest con links rotos
-   - Crear tickets en JIRA para equipo de desarrollo
-
-5. **Evaluar reducción de paralelismo** (opcional)
-   - Si se requiere 100% pass rate
-   - Reducir a 2 threads × 1 fork
-   - O aumentar recursos del sistema
 
 ---
 
 **Estado Final:** ✅ **INVESTIGACIÓN COMPLETADA** con mejoras parciales en código
 
 **Tests Operativos:** 126 de 135 tests pasan consistentemente (93.3%)
-
-**Commit Pendiente:** Crear commit con:
-- Uso de constantes de credenciales (Priority 1.3)
-- SoftAssertions fixes (AddToCartTest, CartOperationsTest)
-- Timeout investigation documentation
 
 ---
 

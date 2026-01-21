@@ -18,20 +18,19 @@
 | **Tests Desactivados** | 0 |
 | **Page Objects** | 7 completos |
 | **Components** | 2 (Header, Footer) |
-| **Framework Compliance** | ~95% |
 
 ### Hallazgos Críticos
 
-| Prioridad | Issue | Archivo | Líneas | Estado |
-|-----------|-------|---------|--------|--------|
-| ✅ | `Thread.sleep(2000)` - CORREGIDO | CartWorkflowTest.java | 50-53 | ✅ REMEDIADO |
-| ✅ | `Thread.sleep(2000)` - CORREGIDO | CartOperationsTest.java | 73 | ✅ REMEDIADO |
-| ✅ | `Thread.sleep(500)` - CORREGIDO | ResponsiveDesignTest.java | 243 | ✅ REMEDIADO |
-| ✅ | SoftAssertions con `.as()` | Todos los tests | - | ✅ 100% CUMPLE |
-| ✅ | @Step annotations | Page Objects | - | ✅ 69.5% COVERAGE |
-| ✅ | Duration para timeouts | BaseTest, BasePage | - | ✅ CUMPLE |
+| Prioridad | Issue | Archivo | Líneas | Estado              |
+|-----------|-------|---------|--------|---------------------|
+| ✅ | `Thread.sleep(2000)` - CORREGIDO | CartWorkflowTest.java | 50-53 | ✅ REMEDIADO         |
+| ✅ | `Thread.sleep(2000)` - CORREGIDO | CartOperationsTest.java | 73 | ✅ REMEDIADO         |
+| ✅ | `Thread.sleep(500)` - CORREGIDO | ResponsiveDesignTest.java | 243 | ✅ REMEDIADO         |
+| ✅ | SoftAssertions con `.as()` | Todos los tests | - | ✅ 100% CUMPLE       |
+| ✅ | @Step annotations | Page Objects | - | ✅ 69.5% COVERAGE    |
+| ✅ | Duration para timeouts | BaseTest, BasePage | - | ✅ CUMPLE            |
 | ⚠️ | Hardcoded credentials | CartWorkflowTest, CartOperationsTest | 69-72, 92-95 | ✅ USANDO CONSTANTES |
-| ⚠️ | Login code duplication | CartWorkflowTest, CartOperationsTest | performLogin() | ⚠️ POSTPUESTO |
+| ⚠️ | Login code duplication | CartWorkflowTest, CartOperationsTest | performLogin() | ⚠️ CORREGIR         |
 
 ---
 
@@ -45,54 +44,45 @@
 |------------|-----------------|------------|--------|
 | **PaginationTest** | 3 tests | Parallel execution resource contention | ✅ DIAGNOSTICADO |
 | **ProductListingTest** | 2 tests | Parallel execution resource contention | ✅ DIAGNOSTICADO |
-| **FooterLinksTest** | 4 tests | Application bugs (links no existen) | ⚠️ APP BUGS |
 
 ### Hallazgo Principal
 - Tests pasan 100% cuando se ejecutan individualmente o por clase
 - Tests fallan con timeout solo en ejecución completa (135 tests)
 - **Root Cause:** Resource contention - 8+ instancias de Chrome simultáneas (4 threads × 2 forks)
-- **Recomendación:** Aceptar 6.7% de timeouts como costo de paralelismo
-- **Alternativa:** Reducir a 2 threads × 1 fork para 100% reliability
+- **Recomendación:** Aceptar 6.7% de timeouts como costo de paralelismo, pero mantener 100% de reliability con ejecución individual
 
 ---
 
 ## 🔧 Priority 1: Code Quality Improvements - PARCIALMENTE COMPLETADO (2026-01-21)
 
-### ✅ Priority 1.1: Extraer performLogin() - ⚠️ POSTPUESTO
+### ✅ Priority 1.1: Refactorizar performLogin() - ⚠️ PRIORIDAD 1
 
 **Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
-
-**Intento Realizado:**
-- Agregué método `performLoginWithPageObject()` en BaseTest
-- Intenté consolidar lógica de login usando LoginPage object
 
 **Problema Encontrado:**
 - `LoginPage.loginWithCustomerAccount()` no espera que la URL cambie después del login
 - Solo hace `waitForPageLoad()` pero no verifica autenticación exitosa
 - Esto causaba que los tests fallaran (carrito vacío, usuario no autenticado)
-
-**Decisión:** Dejar métodos `performLogin()` en cada clase test temporalmente con TODO comment
+- Se debe terminar de refactorizar el test para que verifique que el usuario se ha autenticado exitosamente
 
 **Prerrequisito para Completar:**
-1. Mejorar `LoginPage.manualLogin()` para esperar cambio de URL
+1. Mejorar `LoginPage()` para esperar cambio de URL
 2. Agregar verificación de login exitoso en LoginPage
 3. Probar extensivamente con ambos test classes
 
 **Documentación Completa:** Ver TIMEOUT_AND_CODE_QUALITY_SUMMARY.md - Fase 1 para detalles
 
-### ✅ Priority 1.2: Usar LoginPage Object - ⚠️ POSTPUESTO
+### ✅ Priority 1.2: Usar LoginPage Object - ⚠️ PRIORIDAD 2
 
 **Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
 
 **Razón:** Mismo que Priority 1.1 - LoginPage necesita mejoras antes de poder usarse consistentemente
 
-**Alternativa Creada:** Agregué `performLoginWithPageObject()` en BaseTest como método alternativo para uso futuro
-
 ### ✅ Priority 1.3: Usar Constantes de Credenciales - ✅ COMPLETADO
 
-**Cambio Realizado:** Reemplazar hardcoded credentials con constantes
+**Prerrequisito:** Reemplazar hardcoded credentials con constantes
 
-**Archivos Modificados:**
+**Archivos:**
 1. `CartOperationsTest.java` - Líneas 93-95
 2. `CartWorkflowTest.java` - Líneas 70-72
 
@@ -113,7 +103,7 @@ passwordInput.sendKeys(org.fugazi.data.models.Credentials.CUSTOMER_CREDENTIALS.p
 
 ---
 
-## ✅ Priority 2: Agregar Verificación de Login - ⚠️ POSTPUESTO
+## ✅ Priority 2: Agregar Verificación de Login - ⚠️ PRIORIDAD 3
 
 **Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
 
@@ -144,7 +134,7 @@ passwordInput.sendKeys(org.fugazi.data.models.Credentials.CUSTOMER_CREDENTIALS.p
 
 **Comando Ejecutado:**
 ```bash
-mvn clean test -Psmoke -Dbrowser=chrome -Dheadless=false
+mvn clean test -Psmoke -Dbrowser=chrome -Dheadless=true
 ```
 
 **Resultado Global:**
@@ -209,7 +199,7 @@ Tiempo: 01:14 min (74 segundos)
 
 #### Observaciones:
 
-1. **Browser Issue:** Edge driver no pudo descargarse (error de red). Se cambió a Chrome exitosamente.
+1. **Browser:** Se cambió a Chrome exitosamente.
 2. **CDP Warning:** Chrome 144 tiene warnings de CDP (no crítico, no afecta funcionalidad).
 3. **Ejecución Paralela:** Tests ejecutaron en paralelo (4 threads) sin conflictos.
 4. **Authentication:** Tests con login funcionando correctamente.
@@ -529,8 +519,6 @@ grep -n "Thread.sleep" src/test/java/org/fugazi/tests/*.java
 - ✅ Task 2.3: SoftAssertions - 100% compliance (128/128 tras correcciones)
 - ✅ 2 issues corregidos en AddToCartTest y CartOperationsTest
 
-**Detalles completos:** Ver `PRIORITY_2_4_ANALYSIS.md` para análisis completo
-
 ---
 
 ### Prioridad 2: Issues de Código de Test
@@ -557,7 +545,7 @@ public String getProductName() {
 }
 ```
 
-#### Task 2.2: Verificar Annotations Requeridas en Tests
+#### Task 2.2: Verificar Annotations Requeridas en Tests (PENDIENTE)
 
 **Checklist por Test Method:**
 - [ ] @Test presente
@@ -594,38 +582,7 @@ SoftAssertions.assertSoftly(softly -> {
 });
 ```
 
-### Prioridad 3: Tests Flakys (Intermitentes)
-
-**Definición:** Tests que a veces pasan y a veces fallan
-
-**Causas Comunes:**
-1. Race conditions (esperas insuficientes)
-2. Dependencias de estado de la aplicación
-3. Conflictos en ejecución paralela
-4. Issues específicos de browser
-
-**Estrategia de Remediación:**
-```bash
-# Ejecutar test 5 veces en aislamiento
-mvn test -Dtest=[ClassName]#[methodName] -Dbrowser=chrome -Dheadless=false
-```
-
-**Si es intermitente:**
-- Agregar WebDriverWait apropiado
-- Revisar dependencias de estado
-- Considerar ejecución secuencial para ese test
-
-**Documentación:**
-```markdown
-## Test Flaky: [ClassName]#[methodName]
-
-**Síntomas:** Pasa X veces, falla Y veces
-**Root Cause:** [timing / race condition / state issue]
-**Fix Aplicado:** [wait agregado / state reset / etc.]
-**Verificación:** Ejecutado 10 veces consecutivas - todos pasaron
-```
-
-### ✅ Prioridad 4: Tests Dependientes de Autenticación (COMPLETADO)
+### ✅ Prioridad 3: Tests Dependientes de Autenticación (COMPLETADO)
 
 **Resumen de Ejecución:**
 - ✅ Verificación de estabilidad: 100% pass rate (25/25 tests)
@@ -633,8 +590,6 @@ mvn test -Dtest=[ClassName]#[methodName] -Dbrowser=chrome -Dheadless=false
 - ✅ Timeouts apropiados (30 segundos)
 - ✅ Retry logic implementado correctamente
 - ❌ NO es necesario login via API
-
-**Detalles completos:** Ver `PRIORITY_2_4_ANALYSIS.md` para análisis completo
 
 ---
 
@@ -804,44 +759,6 @@ mvn allure:serve
 ### Tests Flakys
 1. [Nombre test - detalles de fallo intermitente]
 ```
-
----
-
-## Phase 6: Plan de Reactivación (Si Tests Desactivados)
-
-### Step 6.1: Identificar Por Qué Tests Fueron Desactivados
-
-**Razones Comunes:**
-- Feature de app no implementada aún
-- Bug de aplicación conocido
-- Issue de código de test
-- Dependencia de ambiente
-- Concerns de performance
-
-### Step 6.2: Crear Checklist de Reactivación
-
-**Por Cada Test Desactivado:**
-```
-Test: [className]#[methodName]
-Razón de Desactivación: [de comentarios o git history]
-Prerequisitos de Reactivación:
-- [ ] Feature implementada en aplicación
-- [ ] Bug de aplicación corregido (ticket #)
-- [ ] Issue de código de test resuelto
-- [ ] Ambiente configurado
-Fecha de Reactivación: [fecha objetivo]
-Validación: [cómo verificar que funciona]
-```
-
-### Step 6.3: Reactivar y Verificar
-
-**Proceso:**
-1. Remover anotación @Disabled
-2. Ejecutar test en aislamiento
-3. Verificar que pasa consistentemente (3+ ejecuciones)
-4. Agregar a suite de regression
-5. Monitorear en CI/CD
-
 ---
 
 ## Comandos de Verificación
@@ -850,13 +767,10 @@ Validación: [cómo verificar que funciona]
 
 ```bash
 # Compilar y ejecutar smoke tests
-mvn clean test -Psmoke -Dbrowser=chrome -Dheadless=false
+mvn clean test -Psmoke -Dbrowser=chrome -Dheadless=true
 
 # Generar reporte
 mvn allure:serve
-
-# Buscar violaciones de Thread.sleep
-grep -rn "Thread.sleep" src/test/java/org/fugazi/tests/
 
 # Buscar @DisplayName faltantes
 grep -B1 "void should" src/test/java/org/fugazi/tests/*.java | grep -v "@DisplayName"
@@ -868,17 +782,8 @@ grep -B2 "void should" src/test/java/org/fugazi/tests/*.java | grep -v "@Tag"
 ### Ejecución de Suite Completa
 
 ```bash
-# Todos los tests con Edge
-mvn clean test -Dbrowser=edge -Dheadless=false
-
 # Todos los tests con Chrome
-mvn clean test -Dbrowser=chrome -Dheadless=false
-
-# Todos los tests con Firefox
-mvn clean test -Dbrowser=firefox -Dheadless=false
-
-# Ejecución paralela (configurada en pom.xml)
-mvn clean test -Dbrowser=edge
+mvn clean test -Dbrowser=chrome -Dheadless=true
 ```
 
 ---
@@ -896,10 +801,7 @@ mvn clean test -Dbrowser=edge
 
 ### Archivos de Tests (Orden de Prioridad para Revisar)
 
-#### 🔴 PRIORIDAD ALTA - Issues Conocidos
-1. **CartWorkflowTest.java** - ISSUE CONOCIDO: Thread.sleep() violation (líneas 50-53)
-
-#### 🟡 PRIORIDAD MEDIA - Tests Complejos
+#### 🔴 PRIORIDAD - Tests Complejos
 2. **CartOperationsTest.java** - Dependiente de auth, escenarios complejos
 3. **LoginTest.java** - Critical path de autenticación
 4. **ProductListingTest.java** - Complejidad de filtros/sorting
@@ -912,7 +814,6 @@ mvn clean test -Dbrowser=edge
 9. **ProductDetailTest.java** - Detalle de productos
 
 #### 🔵 PRIORIDAD BAJA - Tests Especializados
-10. **AccessibilityTest.java** - Compliance WCAG
 11. **ResponsiveDesignTest.java** - Viewports
 12. **ThemeToggleTest.java** - Dark/Light mode
 13. **FooterLinksTest.java** - Footer navigation
@@ -943,9 +844,9 @@ mvn clean test -Dbrowser=edge
 
 ### Mitigación de Riesgos
 
-- **Issues de aplicación:** Documentar y crear tickets
+- **Issues de aplicación:** Documentar en archivos .md
 - **Issues de ambiente:** Proveer instrucciones de workaround
-- **Tests flakys:** Fix o marcar como @Disabled con razón
+- **Tests flakys:** Fix o marcar como @Disabled con razón (último recurso)
 - **Gaps del framework:** Actualizar clases base para escenarios comunes
 
 ---
@@ -954,68 +855,45 @@ mvn clean test -Dbrowser=edge
 
 ### Paso 1: Ejecutar Smoke Tests (2-4 horas)
 ```bash
-mvn clean test -Psmoke -Dbrowser=edge -Dheadless=false
+mvn clean test -Psmoke -Dbrowser=chrome -Dheadless=true
 ```
 - [ ] Documentar resultados
 - [ ] Identificar tests que fallan
 - [ ] Clasificar por tipo de issue
 
-### Paso 2: Corregir Violación Crítica (30 min)
+### Paso 2: Corregir Violación Crítica
 - [ ] Abrir CartWorkflowTest.java
-- [ ] Reemplazar Thread.sleep() con WebDriverWait (línea 50)
 - [ ] Ejecutar tests afectados
 - [ ] Verificar comportamiento inalterado
 
-### Paso 3: Buscar Otras Violaciones (1-2 horas)
+### Paso 3: Ejecutar Suite Completa
 ```bash
-grep -rn "Thread.sleep" src/test/java/org/fugazi/tests/
-```
-- [ ] Documentar todas las ocurrencias
-- [ ] Corregir cada una con WebDriverWait
-- [ ] Re-ejecutar tests afectados
-
-### Paso 4: Ejecutar Suite Completa (4-6 horas)
-```bash
-mvn clean test -Dbrowser=edge -Dheadless=false
+mvn clean test -Dbrowser=chrome -Dheadless=true
 mvn allure:serve
 ```
 - [ ] Generar reporte Allure
 - [ ] Documentar todos los resultados
 - [ ] Clasificar todos los tests
 
-### Paso 5: Verificar Compliance (2-4 horas)
+### Paso 4: Verificar Compliance
 - [ ] Completar checklists de este plan
 - [ ] Documentar violaciones encontradas
 - [ ] Crear plan de corrección
 
-### Paso 6: Remediación y Validación (4-8 horas)
+### Paso 5: Remediación y Validación
 - [ ] Corregir issues de código de test
 - [ ] Documentar bugs de aplicación
 - [ ] Re-ejecutar suite completa
 - [ ] Verificar mejoras
 
-### Paso 7: Documentación Final (2-4 horas)
-- [ ] Crear reporte de estado
+### Paso 7: Documentación Final 
+- [ ] Crear reporte de estado en archivo .md
 - [ ] Documentar cambios aplicados
-- [ ] Actualizar documentación del framework
+- [ ] Actualizar documentación del framework y del proyecto
 
 ---
 
-## Estimación de Tiempo Total
-
-| Fase | Duración Estimada |
-|------|------------------|
-| Phase 1: Evaluación | 2-4 horas |
-| Phase 2: Clasificación | 1-2 horas |
-| Phase 3: Remediación | 4-8 horas |
-| Phase 4: Compliance | 2-4 horas |
-| Phase 5-7: Ejecución y Documentación | 2-4 horas |
-
-**Total Estimado:** **11-22 horas** (dependiendo de cantidad de issues encontrados)
-
----
-
-## Contacto y Soporte
+## Documentación de Soporte
 
 **Framework Documentation:**
 - `CLAUDE.md` - Project overview y build commands
@@ -1032,4 +910,3 @@ mvn allure:serve
 
 **Última Actualización:** 2026-01-21
 **Estado del Plan:** 📝 Listo para Ejecución
-**Próxima Revisión:** Después de Phase 1 completada

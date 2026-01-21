@@ -154,24 +154,6 @@ public abstract class BaseTest {
         driver.get(url);
     }
 
-    /**
-     * Perform login with customer credentials.
-     * Uses LoginPage object and predefined customer credentials.
-     * LoginPage handles all retry logic and verification internally.
-     */
-    @Step("Login as customer")
-    protected void performLoginWithPageObject() {
-        log.info("Logging in with customer credentials using LoginPage");
-
-        // Navigate to login page
-        navigateTo("/login");
-
-        // Use LoginPage object for login (handles retries internally)
-        loginPage().loginWithCustomerAccount();
-
-        log.info("Login completed - URL: {}", driver.getCurrentUrl());
-    }
-
     // ==================== SoftAssertions Helper ====================
 
     /**

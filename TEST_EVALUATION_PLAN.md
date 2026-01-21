@@ -29,8 +29,9 @@
 | ✅ | SoftAssertions con `.as()` | Todos los tests | - | ✅ 100% CUMPLE       |
 | ✅ | @Step annotations | Page Objects | - | ✅ 69.5% COVERAGE    |
 | ✅ | Duration para timeouts | BaseTest, BasePage | - | ✅ CUMPLE            |
-| ⚠️ | Hardcoded credentials | CartWorkflowTest, CartOperationsTest | 69-72, 92-95 | ✅ USANDO CONSTANTES |
-| ⚠️ | Login code duplication | CartWorkflowTest, CartOperationsTest | performLogin() | ⚠️ CORREGIR         |
+| ✅ | Hardcoded credentials | CartWorkflowTest, CartOperationsTest | 69-72, 92-95 | ✅ USANDO CONSTANTES |
+| ✅ | Login code duplication | CartWorkflowTest, CartOperationsTest | performLogin() | ✅ REFACTORIZADO     |
+| ✅ | Login verification | LoginPage | - | ✅ IMPLEMENTADO      |
 
 ---
 
@@ -53,30 +54,40 @@
 
 ---
 
-## 🔧 Priority 1: Code Quality Improvements - PARCIALMENTE COMPLETADO (2026-01-21)
+## 🔧 Priority 1: Code Quality Improvements - ✅ COMPLETADO (2026-01-21)
 
-### ✅ Priority 1.1: Refactorizar performLogin() - ⚠️ PRIORIDAD 1
+### ✅ Priority 1.1: Refactorizar performLogin() - ✅ COMPLETADO
 
-**Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
+**Estado:** ✅ COMPLETADO
 
-**Problema Encontrado:**
-- `LoginPage.loginWithCustomerAccount()` no espera que la URL cambie después del login
-- Solo hace `waitForPageLoad()` pero no verifica autenticación exitosa
-- Esto causaba que los tests fallaran (carrito vacío, usuario no autenticado)
-- Se debe terminar de refactorizar el test para que verifique que el usuario se ha autenticado exitosamente
+**Acción Completada:**
+- Mejorado `LoginPage` con método `waitForSuccessfulLogin()` que verifica que la URL cambie después del login
+- Simplificados métodos `loginWithCustomerAccount()` y `loginWithAdminAccount()` para usar directamente `login(email, password)`
+- Refactorizado `performLogin()` en `CartWorkflowTest` para usar `loginPage().loginWithCustomerAccount()`
+- Refactorizado `performLogin()` en `CartOperationsTest` para usar `loginPage().loginWithCustomerAccount()`
+- Eliminado código duplicado de 40+ líneas en cada test class
 
-**Prerrequisito para Completar:**
-1. Mejorar `LoginPage()` para esperar cambio de URL
-2. Agregar verificación de login exitoso en LoginPage
-3. Probar extensivamente con ambos test classes
+**Verificación:**
+- ✅ CartWorkflowTest: 15/15 tests PASSED (ejecutado 2026-01-21 15:53)
+- ✅ CartOperationsTest: 10/10 tests PASSED (ejecutado 2026-01-21 15:54)
+- ✅ Login verification working correctly with URL change detection
+- ✅ No code duplication between test classes
 
-**Documentación Completa:** Ver TIMEOUT_AND_CODE_QUALITY_SUMMARY.md - Fase 1 para detalles
+**Beneficio:** 
+- Single source of truth para login logic
+- Código más mantenible y DRY (Don't Repeat Yourself)
+- LoginPage ahora verifica autenticación exitosa automáticamente
 
-### ✅ Priority 1.2: Usar LoginPage Object - ⚠️ PRIORIDAD 2
+### ✅ Priority 1.2: Usar LoginPage Object - ✅ COMPLETADO
 
-**Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
+**Estado:** ✅ COMPLETADO
 
-**Razón:** Mismo que Priority 1.1 - LoginPage necesita mejoras antes de poder usarse consistentemente
+**Razón:** Completado junto con Priority 1.1. Ambos test classes ahora usan `loginPage()` object en lugar de código inline.
+
+**Archivos Modificados:**
+1. `LoginPage.java` - Agregado método `waitForSuccessfulLogin()` para verificación robusta
+2. `CartWorkflowTest.java` - Refactorizado para usar `loginPage().loginWithCustomerAccount()`
+3. `CartOperationsTest.java` - Refactorizado para usar `loginPage().loginWithCustomerAccount()`
 
 ### ✅ Priority 1.3: Usar Constantes de Credenciales - ✅ COMPLETADO
 
@@ -103,17 +114,27 @@ passwordInput.sendKeys(org.fugazi.data.models.Credentials.CUSTOMER_CREDENTIALS.p
 
 ---
 
-## ✅ Priority 2: Agregar Verificación de Login - ⚠️ PRIORIDAD 3
+## ✅ Priority 2: Agregar Verificación de Login - ✅ COMPLETADO (2026-01-21)
 
-**Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
+**Estado:** ✅ COMPLETADO
 
-**Razón:** La verificación de login debe ser parte de LoginPage, no de cada test individualmente
+**Acción Completada:**
+- Agregado método privado `waitForSuccessfulLogin()` en `LoginPage` que:
+  - Espera hasta 10 segundos para que la URL cambie (no contenga "/login")
+  - Verifica que la autenticación se completó exitosamente
+  - Lanza `AssertionError` si el login falla (permanece en página de login)
+  - Proporciona logging detallado del proceso
+- Todos los métodos de login (`login()`, `loginWithCustomerAccount()`, `loginWithAdminAccount()`) ahora llaman a `waitForSuccessfulLogin()`
 
-**Prerrequisito:**
-1. Mejorar LoginPage para incluir verificación de login exitoso
-2. Esperar cambio de URL después de login
-3. Verificar header o elemento que indique sesión activa
-4. Probar extensivamente
+**Verificación:**
+- ✅ Login verification funciona correctamente en ambos test classes
+- ✅ 25/25 tests que requieren autenticación pasan exitosamente
+- ✅ URL verification robust and reliable
+
+**Beneficio:** 
+- Tests fallan inmediatamente si el login no es exitoso
+- Debugging más fácil con mensajes de error claros
+- Previene falsos negativos debido a login fallido
 
 ---
 
@@ -801,7 +822,7 @@ mvn clean test -Dbrowser=chrome -Dheadless=true
 
 ### Archivos de Tests (Orden de Prioridad para Revisar)
 
-#### 🔴 PRIORIDAD - Tests Complejos
+#### ?? PRIORIDAD - Tests Complejos
 2. **CartOperationsTest.java** - Dependiente de auth, escenarios complejos
 3. **LoginTest.java** - Critical path de autenticación
 4. **ProductListingTest.java** - Complejidad de filtros/sorting

@@ -6,6 +6,7 @@ import io.qameta.allure.Step;
 
 import org.fugazi.data.models.Credentials;
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -23,8 +24,6 @@ public class LoginPage extends BasePage {
     private static final By EMAIL_INPUT = By.cssSelector("[data-testid='login-email-input']");
     private static final By PASSWORD_INPUT = By.cssSelector("[data-testid='login-password-input']");
     private static final By SUBMIT_BUTTON = By.cssSelector("[data-testid='login-submit-button']");
-    private static final By ADMIN_ACCOUNT_BUTTON = By.cssSelector("[data-testid='admin-account-button']");
-    private static final By CUSTOMER_ACCOUNT_BUTTON = By.cssSelector("[data-testid='customer-account-button']");
     private static final By CONTINUE_AS_GUEST_LINK = By.cssSelector("[data-testid='continue-as-guest-link']");
     private static final By EMAIL_ERROR_MESSAGE = By.cssSelector("[data-testid='email-error-message']");
     private static final By PASSWORD_ERROR_MESSAGE = By.cssSelector("[data-testid='password-error-message']");
@@ -105,6 +104,7 @@ public class LoginPage extends BasePage {
 
     /**
      * Login with email and password credentials.
+     * Waits for authentication to complete successfully by verifying URL change.
      *
      * @param email    user email
      * @param password user password
@@ -123,6 +123,7 @@ public class LoginPage extends BasePage {
         click(SUBMIT_BUTTON);
 
         waitForPageLoad();
+        waitForSuccessfulLogin();
     }
 
     /**
@@ -136,105 +137,27 @@ public class LoginPage extends BasePage {
     }
 
     /**
-     * Login using admin quick login button (uses pre-configured admin credentials).
-     * This clicks on "Use This Account" button next to the admin credentials display.
-     * Note: In this demo app, this fills form and submits but may not actually authenticate.
+     * Login using admin credentials from Credentials class.
+     * Uses form-based login for maximum reliability.
+     * Waits for authentication to complete successfully by verifying URL change.
      */
-    @Step("Login using admin quick button")
+    @Step("Login with admin credentials")
     public void loginWithAdminAccount() {
-        log.info("Logging in using admin quick button");
-        try {
-            if (isElementPresent(ADMIN_ACCOUNT_BUTTON)) {
-                click(ADMIN_ACCOUNT_BUTTON);
-                waitForPageLoad();
-            } else {
-                log.info("Admin quick button not found, using manual login with admin credentials");
-                manualLogin(Credentials.ADMIN_CREDENTIALS.email(), Credentials.ADMIN_CREDENTIALS.password());
-            }
-        } catch (Exception e) {
-            log.warn("Admin quick login failed, trying manual login: {}", e.getMessage());
-            manualLogin(Credentials.ADMIN_CREDENTIALS.email(), Credentials.ADMIN_CREDENTIALS.password());
-        }
+        log.info("Logging in with admin credentials");
+        login(Credentials.ADMIN_CREDENTIALS.email(), Credentials.ADMIN_CREDENTIALS.password());
     }
 
     /**
-     * Login using customer quick login button (uses pre-configured customer credentials).
-     * This clicks on "Use This Account" button next to the customer credentials display.
+     * Login using customer credentials from Credentials class.
+     * Uses form-based login for maximum reliability.
+     * Waits for authentication to complete successfully by verifying URL change.
      */
-    @Step("Login using customer quick button")
+    @Step("Login with customer credentials")
     public void loginWithCustomerAccount() {
-        log.info("Logging in using customer quick button");
-        try {
-            if (isElementPresent(CUSTOMER_ACCOUNT_BUTTON)) {
-                click(CUSTOMER_ACCOUNT_BUTTON);
-                waitForPageLoad();
-            } else {
-                log.info("Customer quick button not found, using manual login with customer credentials");
-                manualLogin(Credentials.CUSTOMER_CREDENTIALS.email(), Credentials.CUSTOMER_CREDENTIALS.password());
-            }
-        } catch (Exception e) {
-            log.warn("Customer quick login failed, trying manual login: {}", e.getMessage());
-            manualLogin(Credentials.CUSTOMER_CREDENTIALS.email(), Credentials.CUSTOMER_CREDENTIALS.password());
-        }
+        log.info("Logging in with customer credentials");
+        login(Credentials.CUSTOMER_CREDENTIALS.email(), Credentials.CUSTOMER_CREDENTIALS.password());
     }
 
-    /**
-     * Manual login by filling email and password fields.
-     * Used as fallback when quick login buttons are not available.
-     * Enhanced with explicit waits to ensure authentication completes successfully.
-     *
-     * @param email    user email
-     * @param password user password
-     */
-    @Step("Manual login with email: {email}")
-    private void manualLogin(String email, String password) {
-        log.info("Performing manual login with email: {}", email);
-
-        var wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-
-        try {
-            log.debug("Waiting for login form to be visible");
-            wait.until(ExpectedConditions.visibilityOfElementLocated(EMAIL_INPUT));
-            wait.until(ExpectedConditions.visibilityOfElementLocated(PASSWORD_INPUT));
-
-            log.debug("Clearing any existing values in email field");
-            driver.findElement(EMAIL_INPUT).clear();
-
-            log.debug("Clearing any existing values in password field");
-            driver.findElement(PASSWORD_INPUT).clear();
-
-            log.debug("Typing email: {}", email);
-            driver.findElement(EMAIL_INPUT).sendKeys(email);
-
-            log.debug("Typing password");
-            driver.findElement(PASSWORD_INPUT).sendKeys(password);
-
-            log.debug("Waiting for submit button to be clickable");
-            wait.until(ExpectedConditions.elementToBeClickable(SUBMIT_BUTTON));
-
-            log.debug("Clicking submit button");
-            driver.findElement(SUBMIT_BUTTON).click();
-
-            log.debug("Waiting for page load after login");
-            waitForPageLoad();
-
-            log.debug("Waiting for URL to change (no longer on login page)");
-            wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/login")));
-
-            log.debug("Verifying login was successful - URL should not contain /login");
-            var currentUrl = driver.getCurrentUrl();
-            log.info("Current URL after login attempt: {}", currentUrl);
-
-            assert currentUrl != null;
-            if (currentUrl.contains("/login")) {
-                log.warn("Login may have failed - still on login page");
-            }
-
-        } catch (Exception e) {
-            log.error("Manual login failed: {}", e.getMessage());
-            throw e;
-        }
-    }
 
     /**
      * Continue as a guest without logging in.
@@ -308,5 +231,35 @@ public class LoginPage extends BasePage {
     public boolean isOnLoginPage() {
         var currentUrl = getCurrentUrl();
         return currentUrl != null && currentUrl.contains("/login");
+    }
+
+    /**
+     * Wait for successful login by verifying URL has changed from login page.
+     * This ensures the authentication completed before the test continues.
+     * Uses explicit wait to handle potential delays in authentication.
+     */
+    @Step("Wait for successful login")
+    private void waitForSuccessfulLogin() {
+        log.debug("Waiting for successful login - verifying URL change");
+        var wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        try {
+            // Wait for URL to no longer contain /login
+            wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/login")));
+
+            var currentUrl = driver.getCurrentUrl();
+            log.info("Login successful - redirected to: {}", currentUrl);
+
+            // Verify we're not still on login page
+            if (currentUrl != null && currentUrl.contains("/login")) {
+                log.error("Login verification failed - still on login page");
+                throw new AssertionError("Login failed - URL still contains /login: " + currentUrl);
+            }
+
+        } catch (TimeoutException e) {
+            var currentUrl = driver.getCurrentUrl();
+            log.error("Login verification timeout - current URL: {}", currentUrl);
+            throw new AssertionError("Login verification timeout - still on login page: " + currentUrl, e);
+        }
     }
 }

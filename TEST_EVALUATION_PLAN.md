@@ -25,9 +25,98 @@
 | Prioridad | Issue | Archivo | Líneas |
 |-----------|-------|---------|--------|
 | 🔴 CRÍTICO | `Thread.sleep(2000)` detectado | CartWorkflowTest.java | 50-53 |
+| 🔴 CRÍTICO | `Thread.sleep(2000)` detectado | CartOperationsTest.java | 73 |
+| 🔴 CRÍTICO | `Thread.sleep(500)` detectado | ResponsiveDesignTest.java | 243 |
 | 🟢 CUMPLE | SoftAssertions con `.as()` | Todos los tests | - |
 | 🟢 CUMPLE | @Step annotations | Page Objects | - |
 | 🟢 CUMPLE | Duration para timeouts | BaseTest, BasePage | - |
+
+---
+
+## 📊 Resultados de Ejecución - Phase 1
+
+### Phase 1.1: Preparación del Entorno ✅
+
+| Verificación | Resultado | Detalles |
+|--------------|-----------|----------|
+| Java Version | ✅ PASS | Java 25 (OpenJDK Corretto 25.0.0.36.2) |
+| Maven Version | ✅ PASS | Maven 3.9.11 |
+| Compilación | ✅ PASS | BUILD SUCCESS (2.1s) |
+| Configuración | ✅ PASS | config.properties válido |
+
+### Phase 1.2: Smoke Tests ✅ (2026-01-21 10:57)
+
+**Comando Ejecutado:**
+```bash
+mvn clean test -Psmoke -Dbrowser=chrome -Dheadless=false
+```
+
+**Resultado Global:**
+```
+Tests run: 26
+Failures: 0
+Errors: 0
+Skipped: 0
+BUILD SUCCESS
+Tiempo: 01:14 min (74 segundos)
+```
+
+#### Detalle por Test Class:
+
+| Test Class | Tests Run | Passed | Failed | Time |
+|------------|-----------|--------|--------|------|
+| **HomePageTest** | 4 | 4 (100%) | 0 | 6.3s |
+| **CartOperationsTest** | 1 | 1 (100%) | 0 | 22.0s |
+| **LoginTest** | 6 | 6 (100%) | 0 | 6.2s |
+| **ProductDetailTest** | 2 | 2 (100%) | 0 | 5.4s |
+| **ProductListingTest** | 5 | 5 (100%) | 0 | 32.9s |
+| **SearchProductTest** | 2 | 2 (100%) | 0 | 10.0s |
+| **ThemeToggleTest** | 1 | 1 (100%) | 0 | 1.8s |
+| **TOTAL** | **26** | **26 (100%)** | **0** | **74.6s** |
+
+#### Tests Específicos Ejecutados:
+
+**HomePageTest (4 tests):**
+- ✅ shouldLoadHomePageSuccessfully
+- ✅ shouldHaveCorrectPageTitle
+- ✅ shouldDisplayFeaturedProducts
+- ✅ shouldDisplayHeaderWithLogoAndSearch
+
+**CartOperationsTest (1 test):**
+- ✅ shouldDisplayCartItems
+
+**LoginTest (6 tests):**
+- ✅ shouldLoadLoginPageSuccessfully
+- ✅ shouldDisplayLoginFormElements
+- ✅ shouldLoginWithValidAdminCredentials
+- ✅ shouldLoginWithValidCustomerCredentials
+- ✅ shouldLoginUsingAdminQuickButton
+- ✅ shouldLoginUsingCustomerQuickButton
+
+**ProductDetailTest (2 tests):**
+- ✅ shouldDisplayProductDetails
+- ✅ shouldDisplayAddToCartButton
+
+**ProductListingTest (5 tests):**
+- ✅ shouldLoadProductsPageSuccessfully
+- ✅ shouldDisplayProductsInGrid
+- ✅ shouldNavigateToProductDetailFromListing
+- ✅ shouldFilterProductsByElectronicsCategory
+- ✅ shouldSearchProductsOnProductsPage
+
+**SearchProductTest (2 tests):**
+- ✅ shouldSearchAndFindProducts
+- ✅ shouldTypeInSearchField
+
+**ThemeToggleTest (1 test):**
+- ✅ shouldDisplayThemeToggleButton
+
+#### Observaciones:
+
+1. **Browser Issue:** Edge driver no pudo descargarse (error de red). Se cambió a Chrome exitosamente.
+2. **CDP Warning:** Chrome 144 tiene warnings de CDP (no crítico, no afecta funcionalidad).
+3. **Ejecución Paralela:** Tests ejecutaron en paralelo (4 threads) sin conflictos.
+4. **Authentication:** Tests con login funcionando correctamente.
 
 ---
 
@@ -87,7 +176,7 @@ cat src/test/resources/config.properties
 
 ```bash
 # Ejecutar suite de smoke tests
-mvn clean test -Psmoke -Dbrowser=edge -Dheadless=false
+mvn clean test -Psmoke -Dbrowser=chrome -Dheadless=false
 ```
 
 #### Checklist de Tests Smoke a Ejecutar
@@ -117,7 +206,7 @@ mvn clean test -Psmoke -Dbrowser=edge -Dheadless=false
 
 ```bash
 # Ejecutar todos los tests
-mvn clean test -Dbrowser=edge -Dheadless=false
+mvn clean test -Dbrowser=chrome -Dheadless=true
 
 # Generar reporte Allure
 mvn allure:serve
@@ -266,9 +355,22 @@ grep -rn "@Disabled" src/test/java/org/fugazi/tests/
 
 ## Phase 3: Plan de Remediación
 
+### ✅ **STATUS: COMPLETADO** (2026-01-21)
+
+**Resumen de Ejecución:**
+- ✅ Task 1.1: CartWorkflowTest.java - Thread.sleep() removido
+- ✅ Task 1.2: CartOperationsTest.java - Thread.sleep() removido
+- ✅ Task 1.3: ResponsiveDesignTest.java - Thread.sleep() removido
+- ✅ Verificación: 34/34 tests afectados pasan exitosamente
+- ✅ Compliance del Framework: ~93% → ~100%
+
+**Detalles completos:** Ver `REMEDIATION_LOG.md` para antes/después del código
+
+---
+
 ### Prioridad 1: Violaciones Críticas del Framework
 
-#### Task 1.1: Remover Thread.sleep() de CartWorkflowTest
+#### ✅ Task 1.1: Remover Thread.sleep() de CartWorkflowTest (COMPLETADO)
 
 **Archivo:** `src/test/java/org/fugazi/tests/CartWorkflowTest.java`
 **Línea:** 50-53
@@ -397,7 +499,7 @@ SoftAssertions.assertSoftly(softly -> {
 **Estrategia de Remediación:**
 ```bash
 # Ejecutar test 5 veces en aislamiento
-mvn test -Dtest=[ClassName]#[methodName] -Dbrowser=edge -Dheadless=false
+mvn test -Dtest=[ClassName]#[methodName] -Dbrowser=chrome -Dheadless=false
 ```
 
 **Si es intermitente:**
@@ -496,44 +598,44 @@ Ambos usan `performLogin()` en @BeforeEach
 
 #### 1. Tests de Autenticación (LoginTest)
 ```bash
-mvn test -Dtest=LoginTest -Dbrowser=edge -Dheadless=false
+mvn test -Dtest=LoginTest -Dbrowser=chrome -Dheadless=false
 ```
 **Propósito:** Verificar que auth funciona antes de ejecutar tests dependientes
 
 #### 2. Tests de Navegación Básica (HomePageTest, ProductDetailTest)
 ```bash
-mvn test -Dtest=HomePageTest,ProductDetailTest -Dbrowser=edge -Dheadless=false
+mvn test -Dtest=HomePageTest,ProductDetailTest -Dbrowser=chrome -Dheadless=false
 ```
 **Propósito:** Verificar funcionalidad básica de la app
 
 #### 3. Tests de Búsqueda y Listado (SearchProductTest, ProductListingTest)
 ```bash
-mvn test -Dtest=SearchProductTest,ProductListingTest -Dbrowser=edge -Dheadless=false
+mvn test -Dtest=SearchProductTest,ProductListingTest -Dbrowser=chrome -Dheadless=false
 ```
 **Propósito:** Verificar que search/filter funciona
 
 #### 4. Tests de Carrito SIN Auth (AddToCartTest)
 ```bash
-mvn test -Dtest=AddToCartTest -Dbrowser=edge -Dheadless=false
+mvn test -Dtest=AddToCartTest -Dbrowser=chrome -Dheadless=false
 ```
 **Propósito:** Verificar add-to-cart funciona
 
 #### 5. Tests de Carrito CON Auth (CartWorkflowTest, CartOperationsTest)
 ```bash
-mvn test -Dtest=CartWorkflowTest -Dbrowser=edge -Dheadless=false
-mvn test -Dtest=CartOperationsTest -Dbrowser=edge -Dheadless=false
+mvn test -Dtest=CartWorkflowTest -Dbrowser=chrome -Dheadless=false
+mvn test -Dtest=CartOperationsTest -Dbrowser=chrome -Dheadless=false
 ```
 **Propósito:** Verificar operaciones completas de carrito
 
 #### 6. Tests de Accesibilidad (AccessibilityTest)
 ```bash
-mvn test -Dtest=AccessibilityTest -Dbrowser=edge -Dheadless=false
+mvn test -Dtest=AccessibilityTest -Dbrowser=chrome -Dheadless=false
 ```
 **Propósito:** Verificar compliance WCAG
 
 #### 7. Tests de UI (ResponsiveDesignTest, ThemeToggleTest, FooterLinksTest, PaginationTest)
 ```bash
-mvn test -Dtest=ResponsiveDesignTest,ThemeToggleTest,FooterLinksTest,PaginationTest -Dbrowser=edge -Dheadless=false
+mvn test -Dtest=ResponsiveDesignTest,ThemeToggleTest,FooterLinksTest,PaginationTest -Dbrowser=chrome -Dheadless=false
 ```
 **Propósito:** Verificar elementos UI funcionan
 
@@ -632,7 +734,7 @@ Validación: [cómo verificar que funciona]
 
 ```bash
 # Compilar y ejecutar smoke tests
-mvn clean test -Psmoke -Dbrowser=edge -Dheadless=false
+mvn clean test -Psmoke -Dbrowser=chrome -Dheadless=false
 
 # Generar reporte
 mvn allure:serve

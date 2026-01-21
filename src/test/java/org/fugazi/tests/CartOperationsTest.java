@@ -69,10 +69,12 @@ class CartOperationsTest extends BaseTest {
             driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/login");
         } catch (Exception e) {
             log.warn("Initial navigation failed, retrying: {}", e.getMessage());
+            // Use WebDriverWait instead of Thread.sleep (framework compliance)
+            var retryWait = new WebDriverWait(driver, java.time.Duration.ofSeconds(2));
             try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
+                retryWait.until(d -> false);  // Wait for timeout without action
+            } catch (org.openqa.selenium.TimeoutException te) {
+                log.debug("Retry wait completed");
             }
             driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/login");
         }

@@ -10,6 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.TimeoutException;
 
 /**
  * Test class for responsive design verification.
@@ -238,11 +241,21 @@ class ResponsiveDesignTest extends BaseTest {
     // ==================== HELPER METHODS ====================
 
     private void setViewportSize(Dimension size) {
+        driver.manage().window().setSize(size);
+        // Use WebDriverWait instead of Thread.sleep (framework compliance)
+        // Wait for CSS animations/transitions to complete after resize
+        var animationWait = new WebDriverWait(driver, java.time.Duration.ofMillis(500));
         try {
-            driver.manage().window().setSize(size);
-            Thread.sleep(500); // Wait for resize animation
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            animationWait.until(d -> {
+                var js = (JavascriptExecutor) d;
+                // Check if there are any running CSS animations or transitions
+                var noAnimations = (Boolean) js.executeScript(
+                        "return document.getAnimations().length === 0;"
+                );
+                return Boolean.TRUE.equals(noAnimations);
+            });
+        } catch (TimeoutException te) {
+            log.debug("Animation wait completed or timeout");
         }
     }
 }

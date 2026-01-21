@@ -1,0 +1,58 @@
+[
+  {
+    "id": "prod-001",
+    "name": "Electric Guitar",
+    "description": "Professional electric guitar with premium pickups",
+    "price": 599.99,
+    "category": "Guitars",
+    "imageUrl": "https://example.com/guitar.jpg",
+    "quantity": 1,
+    "inStock": true,
+    "sku": "EG-001"
+  },
+  {
+    "id": "prod-002",
+    "name": "Studio Headphones",
+    "description": "High-fidelity studio monitoring headphones",
+    "price": 249.99,
+    "category": "Headphones",
+    "imageUrl": "https://example.com/headphones.jpg",
+    "quantity": 1,
+    "inStock": true,
+    "sku": "HP-002"
+  },
+  {
+    "id": "prod-003",
+    "name": "MIDI Keyboard",
+    "description": "49-key MIDI controller with velocity-sensitive keys",
+    "price": 179.99,
+    "category": "Keyboards",
+    "imageUrl": "https://example.com/keyboard.jpg",
+    "quantity": 1,
+    "inStock": true,
+    "sku": "KB-003"
+  },
+  {
+    "id": "prod-004",
+    "name": "USB Microphone",
+    "description": "Professional USB condenser microphone for recording",
+    "price": 129.99,
+    "category": "Microphones",
+    "imageUrl": "https://example.com/microphone.jpg",
+    "quantity": 1,
+    "inStock": true,
+    "sku": "MC-004"
+  },
+  {
+    "id": "prod-005",
+    "name": "Audio Interface",
+    "description": "2-channel USB audio interface for home studios",
+    "price": 149.99,
+    "category": "Interfaces",
+    "imageUrl": "https://example.com/interface.jpg",
+    "quantity": 1,
+    "inStock": false,
+    "sku": "AI-005"
+  }
+]
+

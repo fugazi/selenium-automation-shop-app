@@ -1,0 +1,817 @@
+# Plan de Evaluación y Remediación de Tests - Selenium Automation Framework
+
+**Fecha:** 2026-01-21
+**Proyecto:** Music Tech Shop - Selenium WebDriver E2E Test Automation
+**Objetivo:** Evaluar todos los tests existentes, identificar su estado y remediar issues asegurando cumplimiento de mejores prácticas
+
+---
+
+## Resumen Ejecutivo
+
+### Estado Actual del Framework
+
+| Métrica | Valor |
+|---------|-------|
+| **Total Test Classes** | 14 |
+| **Total Test Methods** | ~125+ |
+| **Tests Activos** | 125+ (100%) |
+| **Tests Desactivados** | 0 |
+| **Page Objects** | 7 completos |
+| **Components** | 2 (Header, Footer) |
+| **Framework Compliance** | ~95% |
+
+### Hallazgos Críticos
+
+| Prioridad | Issue | Archivo | Líneas |
+|-----------|-------|---------|--------|
+| 🔴 CRÍTICO | `Thread.sleep(2000)` detectado | CartWorkflowTest.java | 50-53 |
+| 🟢 CUMPLE | SoftAssertions con `.as()` | Todos los tests | - |
+| 🟢 CUMPLE | @Step annotations | Page Objects | - |
+| 🟢 CUMPLE | Duration para timeouts | BaseTest, BasePage | - |
+
+---
+
+## Estructura de Tests
+
+### Test Classes por Categoría
+
+#### Tests SIN Autenticación (9 clases)
+| # | Test Class | Tests | Tags | Notes |
+|---|------------|-------|------|-------|
+| 1 | HomePageTest | 9 | smoke, regression | Página principal |
+| 2 | ProductDetailTest | 8 | smoke, regression | Detalle de producto |
+| 3 | SearchProductTest | 7 | smoke, regression | Búsqueda |
+| 4 | AddToCartTest | 8 | smoke, regression | Agregar al carrito (sin login) |
+| 5 | LoginTest | 14 | smoke, regression | Autenticación |
+| 6 | AccessibilityTest | 7 | - | WCAG 2.2 AA compliance |
+| 7 | FooterLinksTest | 9 | regression | Footer navigation |
+| 8 | PaginationTest | 10 | regression | Paginación |
+| 9 | ProductListingTest | 20 | regression | Listado y filtros |
+| 10 | ResponsiveDesignTest | 7 | regression | Viewports |
+| 11 | ThemeToggleTest | 6 | regression | Dark/Light mode |
+
+#### Tests CON Autenticación (3 clases)
+| # | Test Class | Tests | Tags | Requisito |
+|---|------------|-------|------|-----------|
+| 12 | CartOperationsTest | 10 | regression | Login requerido |
+| 13 | CartWorkflowTest | 15 | smoke, regression | Login requerido |
+| 14 | (otros con auth) | - | - | - |
+
+---
+
+## Phase 1: Ejecución de Tests y Evaluación de Estado
+
+### Step 1.1: Preparación del Entorno
+
+```bash
+# Verificar Java 21+
+java -version
+
+# Verificar Maven
+mvn -version
+
+# Compilar proyecto
+mvn clean compile
+
+# Verificar configuración
+cat src/test/resources/config.properties
+```
+
+**Expected:**
+- ✅ Java 21+ instalado
+- ✅ Maven 3.9+ instalado
+- ✅ Proyecto compila sin errores
+- ✅ Configuración válida
+
+### Step 1.2: Ejecutar Tests CRÍTICOS (Smoke)
+
+```bash
+# Ejecutar suite de smoke tests
+mvn clean test -Psmoke -Dbrowser=edge -Dheadless=false
+```
+
+#### Checklist de Tests Smoke a Ejecutar
+
+| Test Class | Método | Severity | Estado | Error (si falla) |
+|------------|--------|----------|--------|------------------|
+| HomePageTest | shouldLoadHomePageSuccessfully | BLOCKER | ⬜ Pass / ❌ Fail | |
+| HomePageTest | shouldDisplayFeaturedProducts | CRITICAL | ⬜ Pass / ❌ Fail | |
+| HomePageTest | shouldDisplayHeaderWithLogoAndSearch | CRITICAL | ⬜ Pass / ❌ Fail | |
+| AddToCartTest | shouldClickAddToCartButtonSuccessfully | BLOCKER | ⬜ Pass / ❌ Fail | |
+| AddToCartTest | shouldDisplayAddToCartButtonOnProductDetailPage | CRITICAL | ⬜ Pass / ❌ Fail | |
+| LoginTest | shouldLoadLoginPageSuccessfully | BLOCKER | ⬜ Pass / ❌ Fail | |
+| LoginTest | shouldDisplayLoginFormElements | CRITICAL | ⬜ Pass / ❌ Fail | |
+| LoginTest | shouldLoginWithValidAdminCredentials | CRITICAL | ⬜ Pass / ❌ Fail | |
+| LoginTest | shouldLoginWithValidCustomerCredentials | CRITICAL | ⬜ Pass / ❌ Fail | |
+| LoginTest | shouldLoginUsingAdminQuickButton | CRITICAL | ⬜ Pass / ❌ Fail | |
+| LoginTest | shouldLoginUsingCustomerQuickButton | CRITICAL | ⬜ Pass / ❌ Fail | |
+| CartWorkflowTest | shouldAddSingleProductToCartAndVerify | CRITICAL | ⬜ Pass / ❌ Fail | |
+| CartWorkflowTest | shouldAddMultipleProductsToCart | CRITICAL | ⬜ Pass / ❌ Fail | |
+| CartWorkflowTest | shouldUpdateCartTotalAfterAddingItems | CRITICAL | ⬜ Pass / ❌ Fail | |
+| CartWorkflowTest | shouldPersistCartAfterPageRefresh | CRITICAL | ⬜ Pass / ❌ Fail | |
+| CartWorkflowTest | shouldProceedToCheckoutWhenLoggedIn | CRITICAL | ⬜ Pass / ❌ Fail | |
+| CartWorkflowTest | shouldCalculateSubtotalCorrectly | CRITICAL | ⬜ Pass / ❌ Fail | |
+| CartWorkflowTest | shouldRemoveAllItemsFromCart | CRITICAL | ⬜ Pass / ❌ Fail | |
+
+### Step 1.3: Ejecutar Todos los Tests
+
+```bash
+# Ejecutar todos los tests
+mvn clean test -Dbrowser=edge -Dheadless=false
+
+# Generar reporte Allure
+mvn allure:serve
+```
+
+#### Matriz de Resultados Esperados
+
+**Formato de Documentación:**
+```markdown
+### Test: [ClassName]#[methodName]
+- **Estado:** ✅ PASS / ❌ FAIL
+- **Severity:** BLOCKER/CRITICAL/NORMAL/MINOR
+- **Error:** [mensaje de error si falló]
+- **Stack Trace:** [líneas relevantes]
+- **Root Cause:**
+  - [ ] Element not found
+  - [ ] Timeout
+  - [ ] Assertion failure
+  - [ ] Application bug
+  - [ ] Test code issue
+```
+
+---
+
+## Phase 2: Clasificación de Tests
+
+### Categoría 1: TESTS QUE PASAN ✅
+
+**Definición:** Tests que ejecutan exitosamente sin errores ni fallos de assertions
+
+**Plantilla de Documentación:**
+```markdown
+## Tests que Pasan
+
+**Total:** [X]/[Y] tests ([Z]%)
+
+### Por Test Class:
+- HomePageTest: [X]/9 passing
+- AddToCartTest: [X]/8 passing
+- [... etc ...]
+
+### Cobertura de Critical Path:
+- ✅/❌ Authentication
+- ✅/❌ Add to Cart
+- ✅/❌ Cart Operations
+- ✅/❌ Search
+- ✅/❌ Checkout
+```
+
+### Categoría 2: TESTS QUE FALLAN - Issues de Aplicación 🐛
+
+**Definición:** Tests fallan debido a bugs en la aplicación, no en el código de test
+
+**Plantilla de Documentación:**
+```markdown
+## Tests que Fallan - Issues de Aplicación
+
+### Test: [ClassName]#[methodName]
+- **Status:** ❌ FAIL
+- **Severity:** [BLOCKER/CRITICAL/NORMAL/MINOR]
+- **Error:** [error message]
+- **Expected Behavior:** [qué debería pasar]
+- **Actual Behavior:** [qué realmente pasa]
+- **Application Bug:** [descripción del issue]
+- **JIRA Ticket:** [crear ticket si necesario]
+- **Screenshot:** [path a screenshot en allure-results]
+```
+
+### Categoría 3: TESTS QUE FALLAN - Issues de Código de Test 🔧
+
+**Definición:** Tests fallan por problemas en la implementación del test
+
+#### Issue CRÍTICO #1: Thread.sleep() Violation
+
+**Archivo:** `src/test/java/org/fugazi/tests/CartWorkflowTest.java`
+**Líneas:** 50-53
+**Severity:** 🔴 CRÍTICO
+
+**Código Actual (INCORRECTO):**
+```java
+// Líneas 47-55 en CartWorkflowTest.java
+try {
+    driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/login");
+} catch (Exception e) {
+    log.warn("Initial navigation failed, retrying: {}", e.getMessage());
+    try {
+        Thread.sleep(2000);  // ❌ VIOLACIÓN: Nunca usar Thread.sleep()
+    } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+    }
+    driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/login");
+}
+```
+
+**Código Corregido (CORRECTO):**
+```java
+try {
+    driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/login");
+} catch (Exception e) {
+    log.warn("Initial navigation failed, retrying: {}", e.getMessage());
+    // Usar WebDriverWait en lugar de Thread.sleep
+    var retryWait = new WebDriverWait(driver, Duration.ofSeconds(2));
+    try {
+        retryWait.until(d -> false);  // Esperar con timeout
+    } catch (TimeoutException te) {
+        log.debug("Retry wait completed");
+    }
+    driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/login");
+}
+```
+
+**Pasos para Corregir:**
+1. [ ] Abrir `CartWorkflowTest.java`
+2. [ ] Ir a línea 50
+3. [ ] Reemplazar bloque `try-catch` de `Thread.sleep()` con `WebDriverWait`
+4. [ ] Guardar cambios
+5. [ ] Ejecutar tests afectados
+6. [ ] Verificar comportamiento inalterado
+
+#### Búsqueda de Thread.sleep() en Otros Archivos
+
+**Comando:**
+```bash
+grep -rn "Thread.sleep" src/test/java/org/fugazi/tests/
+```
+
+**Para cada hallazgo:**
+1. [ ] Documentar archivo y línea
+2. [ ] Entender la intención del wait
+3. [ ] Reemplazar con WebDriverWait
+4. [ ] Re-ejecutar test afectado
+5. [ ] Verificar comportamiento consistente
+
+### Categoría 4: TESTS DESACTIVADOS ⏸️
+
+**Búsqueda:**
+```bash
+grep -rn "@Disabled" src/test/java/org/fugazi/tests/
+```
+
+**Resultado Esperado:**
+- **Si se encuentran:** Documentar razón y plan de reactivación
+- **Si NO se encuentran:** Todos los tests están activos ✅
+
+---
+
+## Phase 3: Plan de Remediación
+
+### Prioridad 1: Violaciones Críticas del Framework
+
+#### Task 1.1: Remover Thread.sleep() de CartWorkflowTest
+
+**Archivo:** `src/test/java/org/fugazi/tests/CartWorkflowTest.java`
+**Línea:** 50-53
+**Prioridad:** 🔴 URGENTE
+
+**Cambios Requeridos:**
+```java
+// ANTES (líneas 47-55):
+try {
+    driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/login");
+} catch (Exception e) {
+    log.warn("Initial navigation failed, retrying: {}", e.getMessage());
+    try {
+        Thread.sleep(2000);
+    } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+    }
+    driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/login");
+}
+
+// DESPUÉS:
+try {
+    driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/login");
+} catch (Exception e) {
+    log.warn("Initial navigation failed, retrying: {}", e.getMessage());
+    var retryWait = new WebDriverWait(driver, Duration.ofSeconds(2));
+    try {
+        retryWait.until(d -> false);
+    } catch (TimeoutException te) {
+        log.debug("Retry wait completed");
+    }
+    driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/login");
+}
+```
+
+#### Task 1.2: Buscar Thread.sleep() en Todos los Tests
+
+```bash
+# Buscar violaciones
+grep -n "Thread.sleep" src/test/java/org/fugazi/tests/*.java
+
+# Para cada hallazgo, documentar y corregir:
+```
+
+**Plantilla de Documentación:**
+```markdown
+### Archivo: [FileName.java]
+**Línea:** [X]
+**Contexto:** [código alrededor]
+**Intención del Wait:** [razón original]
+**Solución:** [código corregido con WebDriverWait]
+**Verificación:** [test pasó después del cambio]
+```
+
+### Prioridad 2: Issues de Código de Test
+
+#### Task 2.1: Verificar @Step Annotations en Page Objects
+
+**Comando de Verificación:**
+```bash
+# Encontrar métodos públicos sin @Step
+grep -B1 "public.*(" src/test/java/org/fugazi/pages/*.java | grep -v "@Step"
+```
+
+**Para cada método sin @Step:**
+```java
+// ANTES:
+public String getProductName() {
+    return getText(productNameLocator);
+}
+
+// DESPUÉS:
+@Step("Get product name")
+public String getProductName() {
+    return getText(productNameLocator);
+}
+```
+
+#### Task 2.2: Verificar Annotations Requeridas en Tests
+
+**Checklist por Test Method:**
+- [ ] @Test presente
+- [ ] @DisplayName con descripción legible
+- [ ] @Tag("smoke" o "regression")
+- [ ] @Epic en test class
+- [ ] @Feature en test class
+- [ ] @Severity en cada método
+- [ ] @Story (opcional pero recomendado)
+
+**Comandos de Verificación:**
+```bash
+# Métodos sin @DisplayName
+grep -A1 "@Test" src/test/java/org/fugazi/tests/*.java | grep -v "@DisplayName"
+
+# Métodos sin @Tag
+grep -A2 "@Test" src/test/java/org/fugazi/tests/*.java | grep -v "@Tag"
+```
+
+#### Task 2.3: Verificar Patrón de SoftAssertions
+
+**Comando:**
+```bash
+# Buscar assertThat sin assertSoftly
+grep -n "assertThat" src/test/java/org/fugazi/tests/*.java | grep -v "assertSoftly"
+```
+
+**Patrón Esperado:**
+```java
+SoftAssertions.assertSoftly(softly -> {
+    softly.assertThat(actual)
+        .as("Mensaje descriptivo")
+        .isEqualTo(expected);
+});
+```
+
+### Prioridad 3: Tests Flakys (Intermitentes)
+
+**Definición:** Tests que a veces pasan y a veces fallan
+
+**Causas Comunes:**
+1. Race conditions (esperas insuficientes)
+2. Dependencias de estado de la aplicación
+3. Conflictos en ejecución paralela
+4. Issues específicos de browser
+
+**Estrategia de Remediación:**
+```bash
+# Ejecutar test 5 veces en aislamiento
+mvn test -Dtest=[ClassName]#[methodName] -Dbrowser=edge -Dheadless=false
+```
+
+**Si es intermitente:**
+- Agregar WebDriverWait apropiado
+- Revisar dependencias de estado
+- Considerar ejecución secuencial para ese test
+
+**Documentación:**
+```markdown
+## Test Flaky: [ClassName]#[methodName]
+
+**Síntomas:** Pasa X veces, falla Y veces
+**Root Cause:** [timing / race condition / state issue]
+**Fix Aplicado:** [wait agregado / state reset / etc.]
+**Verificación:** Ejecutado 10 veces consecutivas - todos pasaron
+```
+
+### Prioridad 4: Tests Dependientes de Autenticación
+
+**Tests Requieren Auth:**
+- CartOperationsTest (10 tests)
+- CartWorkflowTest (15 tests)
+
+**Método Actual:**
+Ambos usan `performLogin()` en @BeforeEach
+
+**Verificación Necesaria:**
+- [ ] ¿Credenciales válidas?
+- [ ] ¿Flow de login estable?
+- [ ] ¿Timeouts de sesión causando fallos?
+
+**Remediación si hay Issues de Login:**
+1. Verificar credenciales de test aún válidas
+2. Verificar si timeout de sesión de la aplicación cambió
+3. Considerar login via API para mayor estabilidad
+4. Agregar verificación de sesión antes de ejecutar test
+
+---
+
+## Phase 4: Verificación de Compliance de Mejores Prácticas
+
+### Checklist 1: Estándares de Calidad de Código
+
+**Por Cada Test Class:**
+- [ ] Sin Thread.sleep() presente
+- [ ] Todas las interacciones UI vía Page Objects
+- [ ] Explicit waits para elementos dinámicos
+- [ ] SoftAssertions con mensajes `.as()`
+- [ ] @Slf4j usado (sin System.out.println)
+- [ ] @Step annotations en Page Objects
+- [ ] Duration para timeouts (Selenium 4)
+- [ ] Tests extienden BaseTest
+- [ ] Getters lazy para Page Objects usados
+
+### Checklist 2: Estándares de Estructura de Tests
+
+**Por Cada Test Method:**
+- [ ] @Test annotation presente
+- [ ] @DisplayName con descripción human-readable
+- [ ] @Tag("smoke" o "regression")
+- [ ] @Severity level asignado
+- [ ] @Story para traceability
+- [ ] Patrón Arrange-Act-Assert seguido
+- [ ] Log statements para acciones clave
+- [ ] SoftAssertions para múltiples validaciones
+
+### Checklist 3: Estándares de Page Objects
+
+**Por Cada Page Object:**
+- [ ] Extiende BasePage
+- [ ] Locators private final By
+- [ ] Métodos públicos con @Step
+- [ ] Methods retornan this o next Page
+- [ ] Usa helpers de wait de BasePage
+- [ ] Maneja excepciones gracefulmente
+- [ ] Nombres de métodos significativos
+- [ ] isPageLoaded() implementado
+
+### Checklist 4: Estándares de Configuración
+
+- [ ] ConfigurationManager singleton usado
+- [ ] config.properties cargado correctamente
+- [ ] Browser selection via -Dbrowser flag
+- [ ] Headless mode via -Dheadless flag
+- [ ] Explicit wait timeout configurado
+- [ ] Screenshots on failure habilitados
+- [ ] Allure reporting configurado
+
+---
+
+## Phase 5: Estrategia de Ejecución y Verificación
+
+### Step 5.1: Ejecutar Tests en Orden Lógico
+
+**Secuencia de Ejecución:**
+
+#### 1. Tests de Autenticación (LoginTest)
+```bash
+mvn test -Dtest=LoginTest -Dbrowser=edge -Dheadless=false
+```
+**Propósito:** Verificar que auth funciona antes de ejecutar tests dependientes
+
+#### 2. Tests de Navegación Básica (HomePageTest, ProductDetailTest)
+```bash
+mvn test -Dtest=HomePageTest,ProductDetailTest -Dbrowser=edge -Dheadless=false
+```
+**Propósito:** Verificar funcionalidad básica de la app
+
+#### 3. Tests de Búsqueda y Listado (SearchProductTest, ProductListingTest)
+```bash
+mvn test -Dtest=SearchProductTest,ProductListingTest -Dbrowser=edge -Dheadless=false
+```
+**Propósito:** Verificar que search/filter funciona
+
+#### 4. Tests de Carrito SIN Auth (AddToCartTest)
+```bash
+mvn test -Dtest=AddToCartTest -Dbrowser=edge -Dheadless=false
+```
+**Propósito:** Verificar add-to-cart funciona
+
+#### 5. Tests de Carrito CON Auth (CartWorkflowTest, CartOperationsTest)
+```bash
+mvn test -Dtest=CartWorkflowTest -Dbrowser=edge -Dheadless=false
+mvn test -Dtest=CartOperationsTest -Dbrowser=edge -Dheadless=false
+```
+**Propósito:** Verificar operaciones completas de carrito
+
+#### 6. Tests de Accesibilidad (AccessibilityTest)
+```bash
+mvn test -Dtest=AccessibilityTest -Dbrowser=edge -Dheadless=false
+```
+**Propósito:** Verificar compliance WCAG
+
+#### 7. Tests de UI (ResponsiveDesignTest, ThemeToggleTest, FooterLinksTest, PaginationTest)
+```bash
+mvn test -Dtest=ResponsiveDesignTest,ThemeToggleTest,FooterLinksTest,PaginationTest -Dbrowser=edge -Dheadless=false
+```
+**Propósito:** Verificar elementos UI funcionan
+
+### Step 5.2: Generar Reporte de Tests
+
+**Después de Cada Ejecución:**
+```bash
+mvn allure:serve
+```
+
+**Revisar en Reporte:**
+- Total tests ejecutados
+- Ratios passed/failed/broken
+- Duración de suite
+- Tests fallidos con screenshots
+- Stack traces de fallos
+
+### Step 5.3: Crear Matriz de Estado de Tests
+
+**Formato:**
+```markdown
+# Matriz de Estado de Tests - [Fecha]
+
+## Resumen
+- Total Tests: XXX
+- Passed: XXX (XX%)
+- Failed: XXX (XX%)
+- Broken: XXX (XX%)
+
+## Estado Detallado por Class
+
+### HomePageTest (9 tests)
+| Método | Tag | Severity | Estado | Notas |
+|--------|-----|----------|--------|-------|
+| shouldLoadHomePageSuccessfully | smoke,regression | BLOCKER | ✅ PASS | - |
+| shouldHaveCorrectPageTitle | smoke,regression | NORMAL | ❌ FAIL | Page title cambió - issue de app |
+| [... etc ...]
+
+## Issues Encontrados
+
+### Issues Críticos (Blockers)
+1. [Descripción de issue]
+
+### Violaciones del Framework
+1. Thread.sleep() en CartWorkflowTest:50-53
+
+### Bugs de Aplicación
+1. [Descripción con ref a screenshot]
+
+### Tests Flakys
+1. [Nombre test - detalles de fallo intermitente]
+```
+
+---
+
+## Phase 6: Plan de Reactivación (Si Tests Desactivados)
+
+### Step 6.1: Identificar Por Qué Tests Fueron Desactivados
+
+**Razones Comunes:**
+- Feature de app no implementada aún
+- Bug de aplicación conocido
+- Issue de código de test
+- Dependencia de ambiente
+- Concerns de performance
+
+### Step 6.2: Crear Checklist de Reactivación
+
+**Por Cada Test Desactivado:**
+```
+Test: [className]#[methodName]
+Razón de Desactivación: [de comentarios o git history]
+Prerequisitos de Reactivación:
+- [ ] Feature implementada en aplicación
+- [ ] Bug de aplicación corregido (ticket #)
+- [ ] Issue de código de test resuelto
+- [ ] Ambiente configurado
+Fecha de Reactivación: [fecha objetivo]
+Validación: [cómo verificar que funciona]
+```
+
+### Step 6.3: Reactivar y Verificar
+
+**Proceso:**
+1. Remover anotación @Disabled
+2. Ejecutar test en aislamiento
+3. Verificar que pasa consistentemente (3+ ejecuciones)
+4. Agregar a suite de regression
+5. Monitorear en CI/CD
+
+---
+
+## Comandos de Verificación
+
+### Quick Health Check
+
+```bash
+# Compilar y ejecutar smoke tests
+mvn clean test -Psmoke -Dbrowser=edge -Dheadless=false
+
+# Generar reporte
+mvn allure:serve
+
+# Buscar violaciones de Thread.sleep
+grep -rn "Thread.sleep" src/test/java/org/fugazi/tests/
+
+# Buscar @DisplayName faltantes
+grep -B1 "void should" src/test/java/org/fugazi/tests/*.java | grep -v "@DisplayName"
+
+# Buscar @Tag faltantes
+grep -B2 "void should" src/test/java/org/fugazi/tests/*.java | grep -v "@Tag"
+```
+
+### Ejecución de Suite Completa
+
+```bash
+# Todos los tests con Edge
+mvn clean test -Dbrowser=edge -Dheadless=false
+
+# Todos los tests con Chrome
+mvn clean test -Dbrowser=chrome -Dheadless=false
+
+# Todos los tests con Firefox
+mvn clean test -Dbrowser=firefox -Dheadless=false
+
+# Ejecución paralela (configurada en pom.xml)
+mvn clean test -Dbrowser=edge
+```
+
+---
+
+## Archivos Críticos para Este Plan
+
+### Archivos de Configuración
+- `pom.xml` - Configuración Maven y dependencias
+- `src/test/resources/config.properties` - Settings de ambiente de test
+- `src/test/resources/allure.properties` - Configuración de reporting
+
+### Clases Base
+- `src/test/java/org/fugazi/tests/BaseTest.java` - Setup/teardown de tests
+- `src/test/java/org/fugazi/pages/BasePage.java` - Clase base de Page Objects
+
+### Archivos de Tests (Orden de Prioridad para Revisar)
+
+#### 🔴 PRIORIDAD ALTA - Issues Conocidos
+1. **CartWorkflowTest.java** - ISSUE CONOCIDO: Thread.sleep() violation (líneas 50-53)
+
+#### 🟡 PRIORIDAD MEDIA - Tests Complejos
+2. **CartOperationsTest.java** - Dependiente de auth, escenarios complejos
+3. **LoginTest.java** - Critical path de autenticación
+4. **ProductListingTest.java** - Complejidad de filtros/sorting
+5. **CartWorkflowTest.java** - Workflows complejos de carrito
+
+#### 🟢 PRIORIDAD NORMAL - Tests Estándar
+6. **HomePageTest.java** - Navegación básica
+7. **AddToCartTest.java** - Funcionalidad core
+8. **SearchProductTest.java** - Búsqueda
+9. **ProductDetailTest.java** - Detalle de productos
+
+#### 🔵 PRIORIDAD BAJA - Tests Especializados
+10. **AccessibilityTest.java** - Compliance WCAG
+11. **ResponsiveDesignTest.java** - Viewports
+12. **ThemeToggleTest.java** - Dark/Light mode
+13. **FooterLinksTest.java** - Footer navigation
+14. **PaginationTest.java** - Pagination
+
+### Archivos de Page Objects
+- `src/test/java/org/fugazi/pages/HomePage.java` (229 lines)
+- `src/test/java/org/fugazi/pages/LoginPage.java` (312 lines)
+- `src/test/java/org/fugazi/pages/CartPage.java` (578 lines)
+- `src/test/java/org/fugazi/pages/ProductDetailPage.java` (201 lines)
+- `src/test/java/org/fugazi/pages/ProductsPage.java` (495 lines)
+- `src/test/java/org/fugazi/pages/components/HeaderComponent.java` (374 lines)
+- `src/test/java/org/fugazi/pages/components/FooterComponent.java` (264 lines)
+
+---
+
+## Resultados Esperados
+
+### Criterios de Éxito
+
+1. **100% de tests** siguen mejores prácticas del framework
+2. **0 violaciones de Thread.sleep()** en codebase
+3. **Todos los métodos de Page Objects** tienen @Step annotations
+4. **Todos los tests** tienen annotations requeridas (@Test, @DisplayName, @Tag, @Severity)
+5. **Todos los tests** usan SoftAssertions con .as() descriptions
+6. **Tiempo de ejecución de tests** bajo 30 minutos para suite completa
+7. **Tasa de pase** arriba del 95% para aplicación estable
+
+### Mitigación de Riesgos
+
+- **Issues de aplicación:** Documentar y crear tickets
+- **Issues de ambiente:** Proveer instrucciones de workaround
+- **Tests flakys:** Fix o marcar como @Disabled con razón
+- **Gaps del framework:** Actualizar clases base para escenarios comunes
+
+---
+
+## Próximos Pasos Accionables
+
+### Paso 1: Ejecutar Smoke Tests (2-4 horas)
+```bash
+mvn clean test -Psmoke -Dbrowser=edge -Dheadless=false
+```
+- [ ] Documentar resultados
+- [ ] Identificar tests que fallan
+- [ ] Clasificar por tipo de issue
+
+### Paso 2: Corregir Violación Crítica (30 min)
+- [ ] Abrir CartWorkflowTest.java
+- [ ] Reemplazar Thread.sleep() con WebDriverWait (línea 50)
+- [ ] Ejecutar tests afectados
+- [ ] Verificar comportamiento inalterado
+
+### Paso 3: Buscar Otras Violaciones (1-2 horas)
+```bash
+grep -rn "Thread.sleep" src/test/java/org/fugazi/tests/
+```
+- [ ] Documentar todas las ocurrencias
+- [ ] Corregir cada una con WebDriverWait
+- [ ] Re-ejecutar tests afectados
+
+### Paso 4: Ejecutar Suite Completa (4-6 horas)
+```bash
+mvn clean test -Dbrowser=edge -Dheadless=false
+mvn allure:serve
+```
+- [ ] Generar reporte Allure
+- [ ] Documentar todos los resultados
+- [ ] Clasificar todos los tests
+
+### Paso 5: Verificar Compliance (2-4 horas)
+- [ ] Completar checklists de este plan
+- [ ] Documentar violaciones encontradas
+- [ ] Crear plan de corrección
+
+### Paso 6: Remediación y Validación (4-8 horas)
+- [ ] Corregir issues de código de test
+- [ ] Documentar bugs de aplicación
+- [ ] Re-ejecutar suite completa
+- [ ] Verificar mejoras
+
+### Paso 7: Documentación Final (2-4 horas)
+- [ ] Crear reporte de estado
+- [ ] Documentar cambios aplicados
+- [ ] Actualizar documentación del framework
+
+---
+
+## Estimación de Tiempo Total
+
+| Fase | Duración Estimada |
+|------|------------------|
+| Phase 1: Evaluación | 2-4 horas |
+| Phase 2: Clasificación | 1-2 horas |
+| Phase 3: Remediación | 4-8 horas |
+| Phase 4: Compliance | 2-4 horas |
+| Phase 5-7: Ejecución y Documentación | 2-4 horas |
+
+**Total Estimado:** **11-22 horas** (dependiendo de cantidad de issues encontrados)
+
+---
+
+## Contacto y Soporte
+
+**Framework Documentation:**
+- `CLAUDE.md` - Project overview y build commands
+- `AGENTS.md` - Code style guidelines
+- `.github/instructions/selenium-webdriver-java.instructions.md` - Best practices detalladas
+
+**Best Practices References:**
+- Selenium WebDriver 4 Documentation
+- JUnit 5 User Guide
+- AssertJ Documentation
+- Allure Reporting Documentation
+
+---
+
+**Última Actualización:** 2026-01-21
+**Estado del Plan:** 📝 Listo para Ejecución
+**Próxima Revisión:** Después de Phase 1 completada

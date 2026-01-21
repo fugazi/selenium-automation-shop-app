@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__playwright-mcp-server__browser_navigate",
+      "mcp__firecrawl-mcp-server__firecrawl_map",
+      "mcp__firecrawl-mcp-server__firecrawl_scrape",
+      "Bash(mvn compile:*)",
+      "Bash(mvn test:*)",
+      "mcp__firecrawl-mcp-server__firecrawl_search"
+    ]
+  }
+}

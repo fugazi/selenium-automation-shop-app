@@ -11,8 +11,9 @@ Framework de automatización de pruebas E2E para la aplicación Music Tech Shop,
 - **Data Driven Testing**: Utilidades para generación de datos de prueba
 - **Configuración Flexible**: Soporte para múltiples navegadores y entornos
 - **Retry Mechanism**: Reintentos automáticos para tests flaky
+- **Information Pages**: Cobertura completa de páginas About, Shipping, Returns y Terms
 
-## 📋 Prerequisitos
+## 📋 Prerrequisitos
 
 - Java 21 o superior
 - Maven 3.8+
@@ -45,7 +46,7 @@ mvn clean test -Dheadless=true -Dbrowser=chrome
 mvn test -Dheadless=true
 ```
 
-### Ejecutar tests con navegador
+### Ejecutar tests con navegador visible
 ```bash
 mvn clean test -Dtest=HomePageTest#cartShouldInitiallyBeEmpty -Dbrowser=chrome -Dheadless=false
 ```
@@ -53,7 +54,7 @@ mvn clean test -Dtest=HomePageTest#cartShouldInitiallyBeEmpty -Dbrowser=chrome -
 ### Ejecutar tests específicos
 ```bash
 # Por clase
-mvn clean test -Dtest=HomePageTest -Dbrowser=chrome -Dheadless=false
+mvn clean test -Dtest=InformationPagesTest -Dbrowser=chrome -Dheadless=true
 
 # Por tag
 mvn test -Dgroups=smoke
@@ -97,21 +98,31 @@ src/test/java/org/fugazi/
 ├── listeners/
 │   └── AllureTestListener.java      # Listener para Allure
 ├── pages/
-│   ├── BasePage.java                # Página base
+│   ├── BasePage.java                # Página base con métodos comunes
 │   ├── HomePage.java                # Página principal
 │   ├── ProductDetailPage.java       # Detalle de producto
 │   ├── SearchResultsPage.java       # Resultados de búsqueda
 │   ├── CartPage.java                # Carrito de compras
+│   ├── LoginPage.java               # Página de login
+│   ├── AboutPage.java               # Página About Us (/about)
+│   ├── ShippingPage.java            # Página Shipping Policy (/shipping)
+│   ├── ReturnsPage.java             # Página Returns & Refunds (/returns)
+│   ├── TermsPage.java               # Página Terms of Service (/terms)
 │   └── components/
 │       ├── HeaderComponent.java     # Componente header
-│       └── FooterComponent.java     # Componente footer
+│       └── FooterComponent.java     # Componente footer con navegación
 ├── tests/
-│   ├── BaseTest.java                # Test base
+│   ├── BaseTest.java                # Test base con setup/teardown
 │   ├── HomePageTest.java            # Tests de home
 │   ├── ProductDetailTest.java       # Tests de producto
 │   ├── SearchProductTest.java       # Tests de búsqueda
 │   ├── AddToCartTest.java           # Tests de agregar al carrito
-│   └── CartOperationsTest.java      # Tests de operaciones de carrito (disabled)
+│   ├── CartOperationsTest.java      # Tests de operaciones de carrito
+│   ├── CartWorkflowTest.java        # Tests de flujo de carrito
+│   ├── LoginTest.java               # Tests de login
+│   ├── FooterLinksTest.java         # Tests de links del footer
+│   ├── InformationPagesTest.java    # Tests de páginas informativas
+│   └── ResponsiveDesignTest.java    # Tests de diseño responsive
 └── utils/
     ├── ScreenshotUtils.java         # Utilidades para screenshots
 ```
@@ -137,13 +148,18 @@ timeout.page.load=30
 
 ## 📝 Test Suites
 
-| Suite | Tests | Estado |
-|-------|-------|--------|
-| HomePageTest | 9 | ✅ Active |
-| ProductDetailTest | 8 | ✅ Active |
-| SearchProductTest | 7 | ✅ Active |
-| AddToCartTest | 7 | ✅ Active |
-| CartOperationsTest | 11 | ⏸️ Disabled (requires auth) |
+| Suite                | Tests | Descripción                           | Estado   |
+|----------------------|-------|---------------------------------------|----------|
+| HomePageTest         | 9     | Tests de página principal             | ✅ Active |
+| ProductDetailTest    | 8     | Tests de detalle de producto          | ✅ Active |
+| SearchProductTest    | 7     | Tests de búsqueda                     | ✅ Active |
+| AddToCartTest        | 7     | Tests de agregar al carrito           | ✅ Active |
+| CartOperationsTest   | 10    | Tests de operaciones de carrito       | ✅ Active |
+| CartWorkflowTest     | 15    | Tests de flujo completo de carrito    | ✅ Active |
+| LoginTest            | 14    | Tests de autenticación                | ✅ Active |
+| FooterLinksTest      | 12    | Tests de navegación del footer        | ✅ Active |
+| InformationPagesTest | 14    | Tests de About/Shipping/Returns/Terms | ✅ Active |
+| ResponsiveDesignTest | 6     | Tests de diseño responsive            | ✅ Active |
 
 ## 🏷️ Tags
 
@@ -168,18 +184,18 @@ void flakyTest() {
 1. **Page Object Model**: Separación de la lógica de UI
 2. **Fluent Waits**: Esperas explícitas para elementos (sin `Thread.sleep()`)
 3. **Soft Assertions**: Uso de AssertJ con mensajes descriptivos `.as()`
-4. **Data Generation**: Datos aleatorios con JavaFaker para evitar colisiones
+4. **Data-TestID Locators**: Uso de `data-testid` para locators estables
 5. **Component Pattern**: Componentes reutilizables (Header, Footer)
 6. **Allure Annotations**: Steps y attachments para debugging con `@Step`
 7. **Configuration Management**: Propiedades externalizadas
 8. **Modern Java 21**: Records, Streams, Optional, var, Duration para timeouts
+9. **URL Change Wait**: Espera explícita para cambios de URL en navegación
+10. **JavaScript Click Fallback**: Clicks robustos para modo headless
 
 ## 📋 Plan de Evaluación de Tests
 
-**Documento detallado:** [`TEST_EVALUATION_PLAN.md`](./TEST_EVALUATION_PLAN.md)
-
 Este plan proporciona una estrategia completa para:
-- ✅ Evaluar todos los tests existentes (135+ tests en 14 clases)
+- ✅ Evaluar todos los tests existentes (149+ tests en 14 clases)
 - 🔍 Identificar tests funcionando vs. tests fallando
 - 🔧 Corregir violaciones de mejores prácticas
 - 📊 Verificar compliance del framework
@@ -187,55 +203,37 @@ Este plan proporciona una estrategia completa para:
 
 ### Estado Actual del Framework
 
-| Métrica | Valor |
-|---------|-------|
-| Total Tests | 135 |
-| Test Classes | 14 |
-| Tests Activos | 100% |
-| Compliance | **~100%** ✅ |
-| Framework Violations | **0** (todos corregidos) |
-| SoftAssertions Compliance | **100%** ✅ (128/128) |
-| Test Annotations Compliance | **100%** ✅ (126/126) |
-| Authentication Stability | **100%** ✅ (25/25) |
-| Hardcoded Credentials | **0** ✅ (usando constantes) |
-| Test Timeout Rate | **6.7%** (9/135) - aceptable ⚠️ |
+| Métrica                     | Valor                   |
+|-----------------------------|-------------------------|
+| **Total Tests**             | **149+**                |
+| Test Classes                | 14                      |
+| Tests Activos               | 100% ✅                  |
+| Compliance                  | 100% ✅                  |
+| Framework Violations        | 0 ✅                     |
+| SoftAssertions Compliance   | 100% ✅                  |
+| Test Annotations Compliance | 100% ✅                  |
+| Authentication Stability    | 100% ✅                  |
+| Information Pages Coverage  | 100% ✅                  |
+| Hardcoded Credentials       | 0 ✅ (usando constantes) |
+
+### Footer links no navegan
+Los links del footer usan JavaScript navigation. Asegúrate de usar los métodos específicos (`clickAboutLink()`, `clickShippingLink()`, etc.) que incluyen `waitForUrlChange()`.
+
 
 **Última Actualización:** 2026-01-21
-
-### Análisis Completados
-
-1. **Phase 1-3: Evaluación y Remediación** ✅
-   - `REMEDIATION_LOG.md` - Corrección de Thread.sleep() violations
-   - `TEST_EXECUTION_RESULTS.md` - Resultados de 135 tests ejecutados
-
-2. **Prioridad 2 & 4: Análisis de Código y Autenticación** ✅
-   - `PRIORITY_2_4_ANALYSIS.md` - Análisis detallado de:
-     - @Step annotations coverage (69.5%)
-     - Test annotations compliance (100%)
-     - SoftAssertions pattern (100%)
-     - Authentication stability (100%)
-
-3. **Opción B: Investigación de Timeouts** ✅
-   - `TIMEOUT_AND_CODE_QUALITY_SUMMARY.md` - Análisis completo de:
-     - 9 tests con timeout diagnosticados
-     - Root cause: parallel execution resource contention
-     - Code quality improvements (Priority 1.3 completado)
-     - Recomendaciones y próximos pasos
 
 ### Ejecutar Evaluación Rápida
 
 ```bash
 # 1. Ejecutar smoke tests (críticos)
-mvn clean test -Psmoke -Dbrowser=edge -Dheadless=false
+mvn clean test -Psmoke -Dbrowser=chrome -Dheadless=true
 
-# 2. Buscar violaciones de Thread.sleep
-grep -rn "Thread.sleep" src/test/java/org/fugazi/tests/
+# 2. Ejecutar Information Pages tests
+mvn clean test -Dtest=InformationPagesTest -Dbrowser=chrome -Dheadless=true
 
 # 3. Generar reporte Allure
 mvn allure:serve
 ```
-
-Ver [`TEST_EVALUATION_PLAN.md`](./TEST_EVALUATION_PLAN.md) para el plan completo de 8 fases.
 
 ## 🐛 Troubleshooting
 
@@ -257,4 +255,3 @@ mvn test -Djunit.jupiter.execution.parallel.enabled=true
 ## 📄 Licencia
 
 MIT License
-

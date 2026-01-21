@@ -6,12 +6,16 @@ import org.assertj.core.api.SoftAssertions;
 import org.fugazi.config.ConfigurationManager;
 import org.fugazi.factory.WebDriverFactory;
 import org.fugazi.listeners.AllureTestListener;
+import org.fugazi.pages.AboutPage;
 import org.fugazi.pages.CartPage;
 import org.fugazi.pages.HomePage;
 import org.fugazi.pages.LoginPage;
 import org.fugazi.pages.ProductDetailPage;
 import org.fugazi.pages.ProductsPage;
+import org.fugazi.pages.ReturnsPage;
 import org.fugazi.pages.SearchResultsPage;
+import org.fugazi.pages.ShippingPage;
+import org.fugazi.pages.TermsPage;
 import org.fugazi.pages.components.FooterComponent;
 import org.fugazi.pages.components.HeaderComponent;
 import org.junit.jupiter.api.AfterEach;
@@ -42,6 +46,10 @@ public abstract class BaseTest {
     private SearchResultsPage searchResultsPage;
     private LoginPage loginPage;
     private ProductsPage productsPage;
+    private AboutPage aboutPage;
+    private ShippingPage shippingPage;
+    private ReturnsPage returnsPage;
+    private TermsPage termsPage;
 
     // Components - initialized lazily
     private FooterComponent footerComponent;
@@ -87,6 +95,10 @@ public abstract class BaseTest {
         searchResultsPage = null;
         loginPage = null;
         productsPage = null;
+        aboutPage = null;
+        shippingPage = null;
+        returnsPage = null;
+        termsPage = null;
 
         log.info("Test teardown completed");
     }
@@ -238,6 +250,54 @@ public abstract class BaseTest {
             productsPage = new ProductsPage(driver);
         }
         return productsPage;
+    }
+
+    /**
+     * Get the AboutPage instance.
+     *
+     * @return AboutPage object
+     */
+    protected AboutPage aboutPage() {
+        if (aboutPage == null) {
+            aboutPage = new AboutPage(driver);
+        }
+        return aboutPage;
+    }
+
+    /**
+     * Get the ShippingPage instance.
+     *
+     * @return ShippingPage object
+     */
+    protected ShippingPage shippingPage() {
+        if (shippingPage == null) {
+            shippingPage = new ShippingPage(driver);
+        }
+        return shippingPage;
+    }
+
+    /**
+     * Get the ReturnsPage instance.
+     *
+     * @return ReturnsPage object
+     */
+    protected ReturnsPage returnsPage() {
+        if (returnsPage == null) {
+            returnsPage = new ReturnsPage(driver);
+        }
+        return returnsPage;
+    }
+
+    /**
+     * Get the TermsPage instance.
+     *
+     * @return TermsPage object
+     */
+    protected TermsPage termsPage() {
+        if (termsPage == null) {
+            termsPage = new TermsPage(driver);
+        }
+        return termsPage;
     }
 
     // ==================== Component Getters (Lazy Initialization) ====================

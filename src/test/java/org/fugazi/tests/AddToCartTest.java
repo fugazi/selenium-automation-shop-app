@@ -1,7 +1,5 @@
 package org.fugazi.tests;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;

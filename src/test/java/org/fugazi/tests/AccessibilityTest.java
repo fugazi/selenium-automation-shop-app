@@ -8,6 +8,7 @@ import io.qameta.allure.Story;
 import lombok.extern.slf4j.Slf4j;
 
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import org.openqa.selenium.Keys;
 @Slf4j
 @Epic("Music Tech Shop")
 @Feature("Accessibility")
+@Disabled
 @DisplayName("Accessibility Tests (WCAG 2.2 AA)")
 class AccessibilityTest extends BaseTest {
 

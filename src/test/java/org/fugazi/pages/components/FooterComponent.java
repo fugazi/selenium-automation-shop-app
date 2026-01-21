@@ -4,6 +4,7 @@ import io.qameta.allure.Step;
 
 import org.fugazi.pages.BasePage;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 
 /**
@@ -14,7 +15,8 @@ public class FooterComponent extends BasePage {
 
     // Locators
     private static final By FOOTER_CONTAINER = By.cssSelector("footer, [data-testid='footer']");
-    private static final By COPYRIGHT = By.cssSelector("footer p, footer .copyright, footer [class*='copyright']");
+    private static final By COPYRIGHT = By.cssSelector(
+            "footer p, footer .copyright, footer [class*='copyright'], footer [data-testid='footer-about'] p");
 
     // Footer sections
     private static final By FOOTER_ABOUT = By.cssSelector("[data-testid='footer-about']");
@@ -78,20 +80,6 @@ public class FooterComponent extends BasePage {
             return getText(COPYRIGHT);
         }
         return "";
-    }
-
-    /**
-     * Click on a footer link by its text.
-     *
-     * @param linkText the text of the link to click
-     */
-    @Step("Click footer link: {linkText}")
-    public void clickFooterLink(String linkText) {
-        log.info("Clicking footer link: {}", linkText);
-        scrollToFooter();
-        var footerLink = By.xpath(String.format("//footer//a[contains(text(), '%s')]", linkText));
-        click(footerLink);
-        waitForPageLoad();
     }
 
     /**
@@ -260,5 +248,120 @@ public class FooterComponent extends BasePage {
     public boolean isTermsLinkDisplayed() {
         scrollToFooter();
         return isElementPresent(FOOTER_LINK_TERMS);
+    }
+
+    /**
+     * Click on About Us link in footer using JavaScript for reliability.
+     * Link text: "About Us" - href: /about
+     */
+    @Step("Click About Us link in footer")
+    public void clickAboutLink() {
+        log.info("Clicking About Us link in footer");
+        scrollToFooter();
+
+        // Wait for element to be present
+        waitForClickable(FOOTER_LINK_ABOUT);
+
+        var currentUrl = driver.getCurrentUrl();
+        var element = driver.findElement(FOOTER_LINK_ABOUT);
+        var href = element.getDomAttribute("href");
+        log.info("About link href: {}", href);
+
+        // Use JavaScript click for better reliability
+        try {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        } catch (Exception e) {
+            log.warn("JavaScript click failed, trying regular click: {}", e.getMessage());
+            element.click();
+        }
+
+        // Wait for URL to change
+        waitForUrlChange(currentUrl);
+        waitForPageLoad();
+        log.info("After clicking About link, URL is: {}", driver.getCurrentUrl());
+    }
+
+    /**
+     * Click on Shipping Policy link in footer using JavaScript for reliability.
+     * Link text: "Shipping Policy" - href: /shipping
+     */
+    @Step("Click Shipping Policy link in footer")
+    public void clickShippingLink() {
+        log.info("Clicking Shipping Policy link in footer");
+        scrollToFooter();
+
+        waitForClickable(FOOTER_LINK_SHIPPING);
+
+        var currentUrl = driver.getCurrentUrl();
+        var element = driver.findElement(FOOTER_LINK_SHIPPING);
+        var href = element.getDomAttribute("href");
+        log.info("Shipping link href: {}", href);
+
+        try {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        } catch (Exception e) {
+            element.click();
+        }
+
+        // Wait for URL to change
+        waitForUrlChange(currentUrl);
+        waitForPageLoad();
+        log.info("After clicking Shipping link, URL is: {}", driver.getCurrentUrl());
+    }
+
+    /**
+     * Click on Returns & Refunds link in footer using JavaScript for reliability.
+     * Link text: "Returns & Refunds" - href: /returns
+     */
+    @Step("Click Returns & Refunds link in footer")
+    public void clickReturnsLink() {
+        log.info("Clicking Returns & Refunds link in footer");
+        scrollToFooter();
+
+        waitForClickable(FOOTER_LINK_RETURNS);
+
+        var currentUrl = driver.getCurrentUrl();
+        var element = driver.findElement(FOOTER_LINK_RETURNS);
+        var href = element.getDomAttribute("href");
+        log.info("Returns link href: {}", href);
+
+        try {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        } catch (Exception e) {
+            element.click();
+        }
+
+        // Wait for URL to change
+        waitForUrlChange(currentUrl);
+        waitForPageLoad();
+        log.info("After clicking Returns link, URL is: {}", driver.getCurrentUrl());
+    }
+
+    /**
+     * Click on Terms of Service link in footer using JavaScript for reliability.
+     * Link text: "Terms of Service" - href: /terms
+     */
+    @Step("Click Terms of Service link in footer")
+    public void clickTermsLink() {
+        log.info("Clicking Terms of Service link in footer");
+        scrollToFooter();
+
+        waitForClickable(FOOTER_LINK_TERMS);
+
+        var currentUrl = driver.getCurrentUrl();
+        var element = driver.findElement(FOOTER_LINK_TERMS);
+        var href = element.getDomAttribute("href");
+        log.info("Terms link href: {}", href);
+
+        try {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        } catch (Exception e) {
+            element.click();
+        }
+
+        // Wait for URL to change
+        waitForUrlChange(currentUrl);
+        waitForPageLoad();
+        log.info("After clicking Terms link, URL is: {}", driver.getCurrentUrl());
     }
 }

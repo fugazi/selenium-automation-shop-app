@@ -127,6 +127,29 @@ public class LoginPage extends BasePage {
     }
 
     /**
+     * Attempt login without verifying success.
+     * Use this for testing invalid credentials or error scenarios.
+     *
+     * @param email    user email
+     * @param password user password
+     */
+    @Step("Attempt login with email: {email} (no verification)")
+    public void loginWithoutVerification(String email, String password) {
+        log.info("Attempting login with email: {} (without verification)", email);
+
+        // Enter email
+        type(EMAIL_INPUT, email);
+
+        // Enter password
+        type(PASSWORD_INPUT, password);
+
+        // Click sign in button
+        click(SUBMIT_BUTTON);
+
+        waitForPageLoad();
+    }
+
+    /**
      * Login using Credentials object.
      *
      * @param credentials Credentials object containing email and password

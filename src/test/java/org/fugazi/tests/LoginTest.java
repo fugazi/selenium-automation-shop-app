@@ -172,8 +172,8 @@ class LoginTest extends BaseTest {
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should show error with invalid credentials")
     void shouldShowErrorWithInvalidCredentials() {
-        // Act
-        loginPage().login(INVALID_EMAIL, INVALID_PASSWORD);
+        // Act - Use loginWithoutVerification since we expect this to fail
+        loginPage().loginWithoutVerification(INVALID_EMAIL, INVALID_PASSWORD);
 
         // Assert - Login should fail, possibly staying on login page or showing error
         SoftAssertions.assertSoftly(softly -> {
@@ -195,8 +195,8 @@ class LoginTest extends BaseTest {
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should show error with empty credentials")
     void shouldShowErrorWithEmptyCredentials() {
-        // Act - Submit with empty credentials
-        loginPage().login("", "");
+        // Act - Submit with empty credentials using loginWithoutVerification
+        loginPage().loginWithoutVerification("", "");
 
         // Assert
         SoftAssertions.assertSoftly(softly -> {

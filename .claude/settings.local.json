@@ -6,7 +6,9 @@
       "mcp__firecrawl-mcp-server__firecrawl_scrape",
       "Bash(mvn compile:*)",
       "Bash(mvn test:*)",
-      "mcp__firecrawl-mcp-server__firecrawl_search"
+      "mcp__firecrawl-mcp-server__firecrawl_search",
+      "Bash(java:*)",
+      "Bash(mvn:*)"
     ]
   }
 }

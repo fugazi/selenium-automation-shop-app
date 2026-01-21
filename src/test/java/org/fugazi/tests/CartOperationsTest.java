@@ -62,7 +62,8 @@ class CartOperationsTest extends BaseTest {
                 ConfigurationManager.getInstance().getBrowserType(),
                 driver.getCurrentUrl());
     }
-    
+
+    // TODO: Extract to BaseTest and use LoginPage in future iteration
     private void performLogin() {
         log.info("Step 1: Navigating to login page");
         try {
@@ -78,21 +79,22 @@ class CartOperationsTest extends BaseTest {
             }
             driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/login");
         }
-        
+
         // Wait for login form
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[data-testid='login-email-input']")));
-        
+
         log.info("Logging in with customer credentials");
         var emailInput = driver.findElement(By.cssSelector("[data-testid='login-email-input']"));
         var passwordInput = driver.findElement(By.cssSelector("[data-testid='login-password-input']"));
         var submitButton = driver.findElement(By.cssSelector("[data-testid='login-submit-button']"));
-        
+
+        // Use constant credentials instead of hardcoded values (code quality improvement)
         emailInput.clear();
-        emailInput.sendKeys("user@test.com");
+        emailInput.sendKeys(org.fugazi.data.models.Credentials.CUSTOMER_CREDENTIALS.email());
         passwordInput.clear();
-        passwordInput.sendKeys("user123");
+        passwordInput.sendKeys(org.fugazi.data.models.Credentials.CUSTOMER_CREDENTIALS.password());
         submitButton.click();
-        
+
         // Wait for login to complete
         try {
             wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/login")));

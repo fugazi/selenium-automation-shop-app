@@ -1,6 +1,8 @@
 package org.fugazi.tests;
 
 import io.qameta.allure.Step;
+
+import org.assertj.core.api.SoftAssertions;
 import org.fugazi.config.ConfigurationManager;
 import org.fugazi.factory.WebDriverFactory;
 import org.fugazi.listeners.AllureTestListener;
@@ -15,7 +17,10 @@ import org.fugazi.pages.components.HeaderComponent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,11 +105,11 @@ public abstract class BaseTest {
                 driver.get(config.getBaseUrl());
 
                 // Wait for page load instead of Thread.sleep
-                var pageLoadWait = new org.openqa.selenium.support.ui.WebDriverWait(
-                    driver, java.time.Duration.ofSeconds(10)
+                var pageLoadWait = new WebDriverWait(
+                        driver, java.time.Duration.ofSeconds(10)
                 );
                 pageLoadWait.until(d -> {
-                    var js = (org.openqa.selenium.JavascriptExecutor) d;
+                    var js = (JavascriptExecutor) d;
                     return "complete".equals(js.executeScript("return document.readyState"));
                 });
 
@@ -118,18 +123,18 @@ public abstract class BaseTest {
                 if (attempt == maxAttempts) {
                     log.error("Failed to navigate after {} attempts", maxAttempts);
                     throw new RuntimeException(
-                        "Unable to navigate to base URL after " + maxAttempts + " attempts", e
+                            "Unable to navigate to base URL after " + maxAttempts + " attempts", e
                     );
                 }
 
                 // Wait with exponential backoff using WebDriverWait
                 var backoffSeconds = attempt * 2; // 2s, 4s
                 try {
-                    var backoffWait = new org.openqa.selenium.support.ui.WebDriverWait(
-                        driver, java.time.Duration.ofSeconds(backoffSeconds)
+                    var backoffWait = new WebDriverWait(
+                            driver, java.time.Duration.ofSeconds(backoffSeconds)
                     );
                     backoffWait.until(d -> false); // Just wait
-                } catch (org.openqa.selenium.TimeoutException te) {
+                } catch (TimeoutException te) {
                     // Expected - continue to next attempt
                     log.debug("Backoff wait completed, retrying...");
                 }
@@ -147,6 +152,36 @@ public abstract class BaseTest {
         var url = config.getBaseUrl() + path;
         log.debug("Navigating to: {}", url);
         driver.get(url);
+    }
+
+    /**
+     * Perform login with customer credentials.
+     * Uses LoginPage object and predefined customer credentials.
+     * LoginPage handles all retry logic and verification internally.
+     */
+    @Step("Login as customer")
+    protected void performLoginWithPageObject() {
+        log.info("Logging in with customer credentials using LoginPage");
+
+        // Navigate to login page
+        navigateTo("/login");
+
+        // Use LoginPage object for login (handles retries internally)
+        loginPage().loginWithCustomerAccount();
+
+        log.info("Login completed - URL: {}", driver.getCurrentUrl());
+    }
+
+    // ==================== SoftAssertions Helper ====================
+
+    /**
+     * Get a SoftAssertions instance for assertions.
+     * Provides centralized access to AssertJ soft assertions.
+     *
+     * @return SoftAssertions instance
+     */
+    protected SoftAssertions softly() {
+        return new SoftAssertions();
     }
 
     // ==================== Page Object Getters (Lazy Initialization) ====================

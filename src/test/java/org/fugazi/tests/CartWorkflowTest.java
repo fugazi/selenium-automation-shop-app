@@ -40,6 +40,7 @@ class CartWorkflowTest extends BaseTest {
         performLogin();
     }
 
+    // TODO: Extract to BaseTest and use LoginPage in future iteration
     private void performLogin() {
         log.info("Step 1: Navigating to login page");
         try {
@@ -64,10 +65,11 @@ class CartWorkflowTest extends BaseTest {
         var passwordInput = driver.findElement(By.cssSelector("[data-testid='login-password-input']"));
         var submitButton = driver.findElement(By.cssSelector("[data-testid='login-submit-button']"));
 
+        // Use constant credentials instead of hardcoded values (code quality improvement)
         emailInput.clear();
-        emailInput.sendKeys("user@test.com");
+        emailInput.sendKeys(org.fugazi.data.models.Credentials.CUSTOMER_CREDENTIALS.email());
         passwordInput.clear();
-        passwordInput.sendKeys("user123");
+        passwordInput.sendKeys(org.fugazi.data.models.Credentials.CUSTOMER_CREDENTIALS.password());
         submitButton.click();
 
         // Wait for login to complete - check for URL change or home page element

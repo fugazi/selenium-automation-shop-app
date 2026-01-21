@@ -22,14 +22,110 @@
 
 ### Hallazgos Críticos
 
-| Prioridad | Issue | Archivo | Líneas |
-|-----------|-------|---------|--------|
-| 🔴 CRÍTICO | `Thread.sleep(2000)` detectado | CartWorkflowTest.java | 50-53 |
-| 🔴 CRÍTICO | `Thread.sleep(2000)` detectado | CartOperationsTest.java | 73 |
-| 🔴 CRÍTICO | `Thread.sleep(500)` detectado | ResponsiveDesignTest.java | 243 |
-| 🟢 CUMPLE | SoftAssertions con `.as()` | Todos los tests | - |
-| 🟢 CUMPLE | @Step annotations | Page Objects | - |
-| 🟢 CUMPLE | Duration para timeouts | BaseTest, BasePage | - |
+| Prioridad | Issue | Archivo | Líneas | Estado |
+|-----------|-------|---------|--------|--------|
+| ✅ | `Thread.sleep(2000)` - CORREGIDO | CartWorkflowTest.java | 50-53 | ✅ REMEDIADO |
+| ✅ | `Thread.sleep(2000)` - CORREGIDO | CartOperationsTest.java | 73 | ✅ REMEDIADO |
+| ✅ | `Thread.sleep(500)` - CORREGIDO | ResponsiveDesignTest.java | 243 | ✅ REMEDIADO |
+| ✅ | SoftAssertions con `.as()` | Todos los tests | - | ✅ 100% CUMPLE |
+| ✅ | @Step annotations | Page Objects | - | ✅ 69.5% COVERAGE |
+| ✅ | Duration para timeouts | BaseTest, BasePage | - | ✅ CUMPLE |
+| ⚠️ | Hardcoded credentials | CartWorkflowTest, CartOperationsTest | 69-72, 92-95 | ✅ USANDO CONSTANTES |
+| ⚠️ | Login code duplication | CartWorkflowTest, CartOperationsTest | performLogin() | ⚠️ POSTPUESTO |
+
+---
+
+## 📊 Opción B: Investigación de Timeouts - ✅ COMPLETADO (2026-01-21)
+
+**Análisis Completo:** Ver [`TIMEOUT_AND_CODE_QUALITY_SUMMARY.md`](./TIMEOUT_AND_CODE_QUALITY_SUMMARY.md)
+
+### Tests con Timeout Investigados
+
+| Test Class | Tests Afectados | Root Cause | Estado |
+|------------|-----------------|------------|--------|
+| **PaginationTest** | 3 tests | Parallel execution resource contention | ✅ DIAGNOSTICADO |
+| **ProductListingTest** | 2 tests | Parallel execution resource contention | ✅ DIAGNOSTICADO |
+| **FooterLinksTest** | 4 tests | Application bugs (links no existen) | ⚠️ APP BUGS |
+
+### Hallazgo Principal
+- Tests pasan 100% cuando se ejecutan individualmente o por clase
+- Tests fallan con timeout solo en ejecución completa (135 tests)
+- **Root Cause:** Resource contention - 8+ instancias de Chrome simultáneas (4 threads × 2 forks)
+- **Recomendación:** Aceptar 6.7% de timeouts como costo de paralelismo
+- **Alternativa:** Reducir a 2 threads × 1 fork para 100% reliability
+
+---
+
+## 🔧 Priority 1: Code Quality Improvements - PARCIALMENTE COMPLETADO (2026-01-21)
+
+### ✅ Priority 1.1: Extraer performLogin() - ⚠️ POSTPUESTO
+
+**Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
+
+**Intento Realizado:**
+- Agregué método `performLoginWithPageObject()` en BaseTest
+- Intenté consolidar lógica de login usando LoginPage object
+
+**Problema Encontrado:**
+- `LoginPage.loginWithCustomerAccount()` no espera que la URL cambie después del login
+- Solo hace `waitForPageLoad()` pero no verifica autenticación exitosa
+- Esto causaba que los tests fallaran (carrito vacío, usuario no autenticado)
+
+**Decisión:** Dejar métodos `performLogin()` en cada clase test temporalmente con TODO comment
+
+**Prerrequisito para Completar:**
+1. Mejorar `LoginPage.manualLogin()` para esperar cambio de URL
+2. Agregar verificación de login exitoso en LoginPage
+3. Probar extensivamente con ambos test classes
+
+**Documentación Completa:** Ver TIMEOUT_AND_CODE_QUALITY_SUMMARY.md - Fase 1 para detalles
+
+### ✅ Priority 1.2: Usar LoginPage Object - ⚠️ POSTPUESTO
+
+**Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
+
+**Razón:** Mismo que Priority 1.1 - LoginPage necesita mejoras antes de poder usarse consistentemente
+
+**Alternativa Creada:** Agregué `performLoginWithPageObject()` en BaseTest como método alternativo para uso futuro
+
+### ✅ Priority 1.3: Usar Constantes de Credenciales - ✅ COMPLETADO
+
+**Cambio Realizado:** Reemplazar hardcoded credentials con constantes
+
+**Archivos Modificados:**
+1. `CartOperationsTest.java` - Líneas 93-95
+2. `CartWorkflowTest.java` - Líneas 70-72
+
+**Antes:**
+```java
+emailInput.sendKeys("user@test.com");
+passwordInput.sendKeys("user123");
+```
+
+**Después:**
+```java
+emailInput.sendKeys(org.fugazi.data.models.Credentials.CUSTOMER_CREDENTIALS.email());
+passwordInput.sendKeys(org.fugazi.data.models.Credentials.CUSTOMER_CREDENTIALS.password());
+```
+
+**Beneficio:** Single source of truth para credenciales de test
+**Verificación:** Test ejecutado exitosamente
+
+---
+
+## ✅ Priority 2: Agregar Verificación de Login - ⚠️ POSTPUESTO
+
+**Estado:** NO COMPLETADO - Requiere mejora previa de LoginPage
+
+**Razón:** La verificación de login debe ser parte de LoginPage, no de cada test individualmente
+
+**Prerrequisito:**
+1. Mejorar LoginPage para incluir verificación de login exitoso
+2. Esperar cambio de URL después de login
+3. Verificar header o elemento que indique sesión activa
+4. Probar extensivamente
+
+---
 
 ---
 

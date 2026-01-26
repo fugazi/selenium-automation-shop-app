@@ -11,7 +11,8 @@
       "Bash(mvn:*)",
       "mcp__playwright-mcp-server__browser_install",
       "Bash(copy:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "mcp__firecrawl-mcp-server__firecrawl_crawl"
     ]
   }
 }

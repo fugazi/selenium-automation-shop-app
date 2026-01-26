@@ -1,9 +1,11 @@
 # PLAN FIX E2E TESTS
+
 **Music Tech Shop - Selenium WebDriver Automation Framework**
 
 ---
 
 ## Document Metadata
+
 - **Created**: 2026-01-26
 - **Author**: AI Agent (Claude Code)
 - **Project**: Selenium E2E Test Automation for Music Tech Shop
@@ -14,15 +16,19 @@
 
 ## Executive Summary
 
-This comprehensive plan addresses **10 test failures and 1 error** identified during test execution (`mvn clean test -Dheadless=true -Dbrowser=chrome`). The failures span multiple areas: URL resilience, product detail functionality (quantity selector), cart persistence, authentication/redirect flows, and search functionality.
+This comprehensive plan addresses **10 test failures and 1 error** identified during test execution (
+`mvn clean test -Dheadless=true -Dbrowser=chrome`). The failures span multiple areas: URL resilience, product detail
+functionality (quantity selector), cart persistence, authentication/redirect flows, and search functionality.
 
-The plan is organized into **4 phases** prioritized by business impact and technical dependencies, with detailed root cause analysis, solution strategies, and implementation steps.
+The plan is organized into **4 phases** prioritized by business impact and technical dependencies, with detailed root
+cause analysis, solution strategies, and implementation steps.
 
 ---
 
 ## Test Results Overview
 
 ### Execution Summary
+
 ```
 Total Tests: 185
 Passed: 167
@@ -35,30 +41,33 @@ Success Rate: 90.3%
 
 ### Failed Tests by Category
 
-| Category | Failures | Priority | Impact |
-|----------|----------|----------|---------|
-| Login & Authentication | 2 | CRITICAL | Blocks cart workflows |
-| Product Detail (Quantity) | 2 | CRITICAL | Core e-commerce feature |
-| Cart Persistence | 1 | HIGH | User data loss |
-| URL Resilience | 4 | MEDIUM | Edge case handling |
-| Search Functionality | 1 | LOW | Input sanitization |
-| Authentication Redirect | 1 | MEDIUM | UX flow issue |
+| Category                  | Failures | Priority | Impact                  |
+|---------------------------|----------|----------|-------------------------|
+| Login & Authentication    | 2        | CRITICAL | Blocks cart workflows   |
+| Product Detail (Quantity) | 2        | CRITICAL | Core e-commerce feature |
+| Cart Persistence          | 1        | HIGH     | User data loss          |
+| URL Resilience            | 4        | MEDIUM   | Edge case handling      |
+| Search Functionality      | 1        | LOW      | Input sanitization      |
+| Authentication Redirect   | 1        | MEDIUM   | UX flow issue           |
 
 ---
 
 ## Phase 1: CRITICAL - Fix Login & Authentication (Priority: P0)
 
 ### Business Impact
+
 **Blocks**: CartWorkflowTest, CartOperationsTest, and all authenticated user flows.
 **Users Affected**: 100% of registered customers attempting to access cart/checkout.
 
 ### 1.1 Login Functionality - Root Cause Analysis
 
 **Failing Tests:**
+
 - `CartWorkflowTest.setupWithLogin:performLogin` (ERROR)
 - `AuthenticationRedirectTest.shouldNotRedirectToLoginWhenUserIsAlreadyAuthenticated` (ERROR)
 
 **Error Details:**
+
 ```
 Location: CartWorkflowTest.java:65
 Error: Login verification timeout - still on login page: https://music-tech-shop.vercel.app/login
@@ -66,12 +75,14 @@ Test Credentials: user@test.com / user123
 ```
 
 **Root Cause Hypothesis:**
+
 1. **Test credentials may be invalid** - Application might not accept hardcoded test credentials
 2. **Login form submission not working** - Submit button click or form handling broken
 3. **Post-login redirect not happening** - Navigation after successful login failing
 4. **Authentication state not persisting** - Session/token not being stored
 
 **Investigation Steps:**
+
 ```java
 // In LoginPage.java - verify loginWithCustomerAccount() implementation
 @Step("Login with customer test account")
@@ -88,16 +99,19 @@ public HomePage loginWithCustomerAccount() {
 **Solutions:**
 
 #### Solution A: Verify Test Credentials (Quick Win)
-1. Navigate to login page manually using MCP Playwright
+
+1. Navigate to login page manually using MCP Playwright or `MCP web-reader`
 2. Test credentials: `admin@test.com / admin123` and `user@test.com / user123`
 3. Observe actual login behavior
 4. If credentials work manually, issue is with automation
 5. If credentials don't work, need to get valid test credentials
 
 #### Solution B: Fix Login Page Object (Most Likely)
+
 **File**: `src/test/java/org/fugazi/pages/LoginPage.java`
 
 **Updates needed:**
+
 ```java
 @Step("Login with customer account")
 public HomePage loginWithCustomerAccount() {
@@ -140,6 +154,7 @@ private void clearAndType(By locator, String text) {
 ```
 
 #### Solution C: Verify Application Login State
+
 **File**: `src/test/java/org/fugazi/tests/CartWorkflowTest.java`
 
 ```java
@@ -154,8 +169,8 @@ private void performLogin() {
 
     // Verify login page is actually loaded
     softly.assertThat(loginPage().isPageLoaded())
-        .as("Login page should be loaded before attempting login")
-        .isTrue();
+            .as("Login page should be loaded before attempting login")
+            .isTrue();
 
     // Attempt login
     loginPage().loginWithCustomerAccount();
@@ -163,8 +178,8 @@ private void performLogin() {
     // Verify we're NOT on login page anymore
     var currentUrl = driver.getCurrentUrl();
     softly.assertThat(currentUrl)
-        .as("Should not be on login page after successful login")
-        .doesNotContain("/login");
+            .as("Should not be on login page after successful login")
+            .doesNotContain("/login");
 
     log.info("Login completed successfully - URL: {}", currentUrl);
 }
@@ -173,9 +188,11 @@ private void performLogin() {
 ### 1.2 Authentication Redirect Flow
 
 **Failing Test:**
+
 - `AuthenticationRedirectTest.shouldPreserveRedirectParameterWhenNavigatingToLoginFromCart`
 
 **Issue:**
+
 ```
 Expected URL to contain: redirect=/cart
 Actual URL: https://music-tech-shop.vercel.app/cart
@@ -200,18 +217,18 @@ void shouldPreserveRedirectParameterWhenNavigatingToLoginFromCart() {
         // Check if redirect parameter exists (application might not use it)
         if (currentUrl.contains("redirect=")) {
             softly.assertThat(currentUrl)
-                .as("URL should contain redirect parameter")
-                .contains("redirect=/cart");
+                    .as("URL should contain redirect parameter")
+                    .contains("redirect=/cart");
         } else {
             // Alternative: verify we're on login page
             softly.assertThat(currentUrl)
-                .as("Should be on login page")
-                .contains("/login");
+                    .as("Should be on login page")
+                    .contains("/login");
         }
 
         softly.assertThat(loginPage().isPageLoaded())
-            .as("Login page should be loaded")
-            .isTrue();
+                .as("Login page should be loaded")
+                .isTrue();
     });
 }
 ```
@@ -219,25 +236,26 @@ void shouldPreserveRedirectParameterWhenNavigatingToLoginFromCart() {
 ### 1.3 Implementation Tasks
 
 **Task List:**
-- [ ] **Investigation**: Use MCP Playwright to test login manually
-  - Navigate to /login
-  - Try both admin and customer credentials
-  - Observe successful login flow
-  - Document any redirects, cookies, storage changes
+
+- [ ] **Investigation**: Use MCP Playwright or `MCP web-reader` to test login manually
+    - Navigate to /login
+    - Try both admin and customer credentials
+    - Observe successful login flow
+    - Document any redirects, cookies, storage changes
 
 - [ ] **Page Object Fix**: Update `LoginPage.loginWithCustomerAccount()`
-  - Add explicit waits for form elements
-  - Implement proper error handling
-  - Add verification of successful login
+    - Add explicit waits for form elements
+    - Implement proper error handling
+    - Add verification of successful login
 
 - [ ] **Test Update**: Fix `CartWorkflowTest.performLogin()`
-  - Add pre-login verification
-  - Add post-login verification
-  - Improve error messages
+    - Add pre-login verification
+    - Add post-login verification
+    - Improve error messages
 
 - [ ] **Test Update**: Fix `AuthenticationRedirectTest`
-  - Adjust expectations based on actual app behavior
-  - Or add redirect parameter support if missing
+    - Adjust expectations based on actual app behavior
+    - Or add redirect parameter support if missing
 
 - [ ] **Validation**: Run tests and verify login works
   ```bash
@@ -250,16 +268,19 @@ void shouldPreserveRedirectParameterWhenNavigatingToLoginFromCart() {
 ## Phase 2: CRITICAL - Fix Quantity Selector (Priority: P0)
 
 ### Business Impact
+
 **Blocks**: Users cannot select multiple quantities of products, breaking core e-commerce functionality.
 **Users Affected**: 100% of customers purchasing products.
 
 ### 2.1 Quantity Selector - Root Cause Analysis
 
 **Failing Tests:**
+
 - `ProductDetailExtendedTest.shouldUpdateTotalPriceWhenQuantityChanges`
 - `ProductDetailExtendedTest.shouldCalculateTotalPriceCorrectlyForMultipleQuantities`
 
 **Failure Details:**
+
 ```
 Test: shouldUpdateTotalPriceWhenQuantityChanges
 Location: ProductDetailExtendedTest.java:47
@@ -273,6 +294,7 @@ Actual: quantity = 1, total = 899.99
 ```
 
 **Root Cause Hypothesis:**
+
 1. **Increase/decrease buttons not working** - Clicks not registering or elements not found
 2. **Quantity input field read-only** - Cannot set value programmatically
 3. **Selector locators incorrect** - Elements exist but selectors are wrong
@@ -280,7 +302,8 @@ Actual: quantity = 1, total = 899.99
 
 ### 2.2 Investigation Steps
 
-**Using MCP Playwright:**
+**Using MCP Playwright or `MCP web-reader`:**
+
 ```javascript
 // Navigate to product detail page
 await page.goto('https://music-tech-shop.vercel.app/products/1');
@@ -305,39 +328,41 @@ console.log('Decrease buttons:', decreaseButtons.length);
 **File**: `src/test/java/org/fugazi/pages/ProductDetailPage.java`
 
 **Current Locators (may be incorrect):**
+
 ```java
 private static final By QUANTITY_INPUT = By.cssSelector(
-    "[data-testid='quantity-input'], input[type='number']"
+        "[data-testid='quantity-input'], input[type='number']"
 );
 private static final By QUANTITY_INCREASE = By.cssSelector(
-    "[data-testid='quantity-increase'], button[aria-label*='increase']"
+        "[data-testid='quantity-increase'], button[aria-label*='increase']"
 );
 private static final By QUANTITY_DECREASE = By.cssSelector(
-    "[data-testid='quantity-decrease'], button[aria-label*='decrease']"
+        "[data-testid='quantity-decrease'], button[aria-label*='decrease']"
 );
 ```
 
 **Updated Implementation:**
+
 ```java
 // Add more specific locators based on actual DOM
 private static final By QUANTITY_INPUT = By.cssSelector(
-    "input[name='quantity'], " +
-    "[data-testid='quantity-input'], " +
-    "input[type='number']"
-);
+                "input[name='quantity'], " +
+                        "[data-testid='quantity-input'], " +
+                        "input[type='number']"
+        );
 
 private static final By QUANTITY_INCREASE = By.cssSelector(
-    "button[aria-label='Increase quantity'], " +
-    "button[data-action='increase'], " +
-    "[data-testid='quantity-increase'], " +
-    ".quantity-increase"
+        "button[aria-label='Increase quantity'], " +
+                "button[data-action='increase'], " +
+                "[data-testid='quantity-increase'], " +
+                ".quantity-increase"
 );
 
 private static final By QUANTITY_DECREASE = By.cssSelector(
-    "button[aria-label='Decrease quantity'], " +
-    "button[data-action='decrease'], " +
-    "[data-testid='quantity-decrease'], " +
-    ".quantity-decrease"
+        "button[aria-label='Decrease quantity'], " +
+                "button[data-action='decrease'], " +
+                "[data-testid='quantity-decrease'], " +
+                ".quantity-decrease"
 );
 
 @Step("Increase product quantity")
@@ -382,8 +407,8 @@ public ProductDetailPage setQuantity(int quantity) {
 
     // Trigger change event (React apps need this)
     ((JavascriptExecutor) driver).executeScript(
-        "arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
-        qtyInput
+            "arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+            qtyInput
     );
 
     // Wait for quantity to update
@@ -422,10 +447,10 @@ public ProductDetailPage setQuantityDirect(int quantity) {
 
     // Use JavaScript to set value (bypasses React state issues)
     ((JavascriptExecutor) driver).executeScript(
-        "arguments[0].value = arguments[1]; " +
-        "arguments[0].dispatchEvent(new Event('input', { bubbles: true })); " +
-        "arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
-        qtyInput, quantity
+            "arguments[0].value = arguments[1]; " +
+                    "arguments[0].dispatchEvent(new Event('input', { bubbles: true })); " +
+                    "arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+            qtyInput, quantity
     );
 
     // Wait for total price to update
@@ -441,19 +466,19 @@ public ProductDetailPage setQuantityDirect(int quantity) {
 
 ### 2.4 Implementation Tasks
 
-- [ ] **Investigation**: Use MCP Playwright to inspect quantity selector
-  - Navigate to product detail page
-  - Take browser snapshot
-  - Find all quantity-related elements
-  - Test manual interaction (click buttons, type in input)
-  - Document actual DOM structure and working selectors
+- [ ] **Investigation**: Use MCP Playwright or `MCP web-reader` to inspect quantity selector
+    - Navigate to product detail page
+    - Take browser snapshot
+    - Find all quantity-related elements
+    - Test manual interaction (click buttons, type in input)
+    - Document actual DOM structure and working selectors
 
 - [ ] **Page Object Fix**: Update `ProductDetailPage.java`
-  - Update locators based on investigation findings
-  - Fix `increaseQuantity()` method
-  - Fix `setQuantity()` method
-  - Add JavaScript event triggering for React apps
-  - Add robust waits for quantity updates
+    - Update locators based on investigation findings
+    - Fix `increaseQuantity()` method
+    - Fix `setQuantity()` method
+    - Add JavaScript event triggering for React apps
+    - Add robust waits for quantity updates
 
 - [ ] **Test Verification**: Run quantity tests
   ```bash
@@ -465,15 +490,18 @@ public ProductDetailPage setQuantityDirect(int quantity) {
 ## Phase 3: HIGH - Fix Cart Persistence (Priority: P1)
 
 ### Business Impact
+
 **Issue**: Cart items disappear after page refresh, causing user data loss.
 **Users Affected**: All customers who refresh cart page or navigate away and back.
 
 ### 3.1 Cart Persistence - Root Cause Analysis
 
 **Failing Test:**
+
 - `CartPersistenceTest.shouldPreserveCartItemsAfterPageRefresh`
 
 **Failure Details:**
+
 ```
 Location: CartPersistenceTest.java:88
 Expected cart to contain: "Casio CZ-101 Vintage Synthesizer"
@@ -481,6 +509,7 @@ Actual: Empty cart []
 ```
 
 **Root Cause Hypothesis:**
+
 1. **Application doesn't persist cart to localStorage/sessionStorage**
 2. **Cart state is client-side only and resets on refresh**
 3. **Authentication required for persistence** - Unauthenticated cart is temporary
@@ -489,6 +518,7 @@ Actual: Empty cart []
 ### 3.2 Investigation Steps
 
 **Using MCP Browser DevTools:**
+
 ```javascript
 // Navigate to site, add product to cart, check storage
 await page.goto('https://music-tech-shop.vercel.app');
@@ -534,13 +564,13 @@ void shouldPreserveCartItemsAfterPageRefresh() {
 
     // Wait for cart container to be present
     wait.until(ExpectedConditions.presenceOfElementLocated(
-        By.cssSelector("[data-testid='cart-container'], .cart-container, main")
+            By.cssSelector("[data-testid='cart-container'], .cart-container, main")
     ));
 
     // Wait for skeletons to disappear
     try {
         wait.until(ExpectedConditions.invisibilityOfElementLocated(
-            By.cssSelector("[data-slot='skeleton'], .skeleton, .loading")
+                By.cssSelector("[data-slot='skeleton'], .skeleton, .loading")
         ));
     } catch (TimeoutException e) {
         log.debug("No skeleton elements found");
@@ -550,7 +580,7 @@ void shouldPreserveCartItemsAfterPageRefresh() {
     if (itemsBefore > 0) {
         try {
             wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.cssSelector("[data-testid^='cart-item-'][role='article']")
+                    By.cssSelector("[data-testid^='cart-item-'][role='article']")
             ));
         } catch (TimeoutException e) {
             log.warn("Cart items did not appear after refresh - may not be persisted");
@@ -571,18 +601,18 @@ void shouldPreserveCartItemsAfterPageRefresh() {
     // Assert
     SoftAssertions.assertSoftly(softly -> {
         softly.assertThat(itemsAfter)
-            .as("Item count should persist after refresh (before: {}, after: {})", itemsBefore, itemsAfter)
-            .isEqualTo(itemsBefore);
+                .as("Item count should persist after refresh (before: {}, after: {})", itemsBefore, itemsAfter)
+                .isEqualTo(itemsBefore);
 
         if (itemsBefore > 0) {
             softly.assertThat(namesAfter)
-                .as("Item names should persist after refresh")
-                .containsAll(namesBefore);
+                    .as("Item names should persist after refresh")
+                    .containsAll(namesBefore);
         }
     });
 
     log.info("Cart persistence test completed - Before: {} items, After: {} items",
-             itemsBefore, itemsAfter);
+            itemsBefore, itemsAfter);
 }
 ```
 
@@ -600,20 +630,20 @@ void shouldHandleCartStateAfterPageRefresh() {
     SoftAssertions.assertSoftly(softly -> {
         var currentUrl = getCurrentUrl();
         softly.assertThat(currentUrl)
-            .as("Should remain on cart page")
-            .contains("/cart");
+                .as("Should remain on cart page")
+                .contains("/cart");
 
         // Cart may or may not persist depending on auth state
         // Document actual behavior
         if (itemsAfter == 0) {
             log.info("Cart does not persist for unauthenticated users");
             softly.assertThat(true)
-                .as("Cart cleared after refresh (expected for guest users)")
-                .isTrue();
+                    .as("Cart cleared after refresh (expected for guest users)")
+                    .isTrue();
         } else {
             softly.assertThat(itemsAfter)
-                .as("Cart items should persist")
-                .isEqualTo(itemsBefore);
+                    .as("Cart items should persist")
+                    .isEqualTo(itemsBefore);
         }
     });
 }
@@ -622,15 +652,15 @@ void shouldHandleCartStateAfterPageRefresh() {
 ### 3.4 Implementation Tasks
 
 - [ ] **Investigation**: Use browser DevTools to check cart storage
-  - Add product to cart as guest
-  - Check localStorage/sessionStorage
-  - Refresh page and check if data persists
-  - Repeat with authenticated user
+    - Add product to cart as guest
+    - Check localStorage/sessionStorage
+    - Refresh page and check if data persists
+    - Repeat with authenticated user
 
 - [ ] **Test Fix**: Update `CartPersistenceTest`
-  - Add proper waits after refresh
-  - Handle both authenticated and unauthenticated scenarios
-  - Document actual application behavior
+    - Add proper waits after refresh
+    - Handle both authenticated and unauthenticated scenarios
+    - Document actual application behavior
 
 - [ ] **Validation**: Run cart persistence tests
   ```bash
@@ -644,13 +674,15 @@ void shouldHandleCartStateAfterPageRefresh() {
 ### 4.1 URL Resilience Tests (4 Failures)
 
 **Failing Tests:**
+
 - `UrlResilienceTest.shouldHandleNonExistentRouteGracefully`
 - `UrlResilienceTest.shouldHandleMalformedUrlGracefully`
 - `UrlResilienceTest.shouldHandleInvalidProductIdGracefully`
 - `UrlResilienceTest.shouldHandleNegativeProductIdGracefully`
 
 **Issue:**
-Tests expect application to show error pages (404, not-found) for invalid routes, but application may be handling these differently.
+Tests expect application to show error pages (404, not-found) for invalid routes, but application may be handling these
+differently.
 
 **Root Cause:**
 Application likely uses client-side routing (Next.js/React) that doesn't show traditional 404 pages.
@@ -675,21 +707,21 @@ void shouldHandleNonExistentRouteGracefully() {
 
         // Check for various 404/error indicators OR redirect to home
         var hasErrorIndicator = currentUrl.contains("404") ||
-                               currentUrl.contains("not-found") ||
-                               currentUrl.contains("error") ||
-                               pageSource.contains("404") ||
-                               pageSource.contains("not found") ||
-                               pageSource.contains("Page not found");
+                currentUrl.contains("not-found") ||
+                currentUrl.contains("error") ||
+                pageSource.contains("404") ||
+                pageSource.contains("not found") ||
+                pageSource.contains("Page not found");
 
         // Check if redirected to home (SPA behavior)
         var isOnHomePage = homePage().isPageLoaded() ||
-                          currentUrl.endsWith("/") ||
-                          currentUrl.endsWith("/home");
+                currentUrl.endsWith("/") ||
+                currentUrl.endsWith("/home");
 
         // Either error page OR redirect to valid page is acceptable
         softly.assertThat(hasErrorIndicator || isOnHomePage)
-            .as("Should handle non-existent route gracefully (error page or redirect)")
-            .isTrue();
+                .as("Should handle non-existent route gracefully (error page or redirect)")
+                .isTrue();
     });
 }
 
@@ -705,8 +737,8 @@ void shouldHandleInvalidProductIdGracefully() {
 
         // Various acceptable outcomes:
         var isErrorPage = currentUrl.contains("404") ||
-                         currentUrl.contains("not-found") ||
-                         currentUrl.contains("error");
+                currentUrl.contains("not-found") ||
+                currentUrl.contains("error");
 
         var isProductDetail = productDetailPage().isPageLoaded();
         var isRedirectedToProducts = productsPage().isPageLoaded();
@@ -715,19 +747,19 @@ void shouldHandleInvalidProductIdGracefully() {
         var isHandledGracefully = isErrorPage || isProductDetail || isRedirectedToProducts;
 
         softly.assertThat(isHandledGracefully)
-            .as("Should handle invalid product gracefully (error page, product page, or redirect)")
-            .isTrue();
+                .as("Should handle invalid product gracefully (error page, product page, or redirect)")
+                .isTrue();
 
         // If on product detail page, verify it shows some error message
         if (isProductDetail) {
             var pageSource = driver.getPageSource();
             var hasErrorMessage = pageSource.contains("not found") ||
-                                 pageSource.contains("unavailable") ||
-                                 pageSource.contains("404");
+                    pageSource.contains("unavailable") ||
+                    pageSource.contains("404");
 
             softly.assertThat(hasErrorMessage)
-                .as("Product page should show error message for invalid product")
-                .isTrue();
+                    .as("Product page should show error message for invalid product")
+                    .isTrue();
         }
     });
 }
@@ -736,6 +768,7 @@ void shouldHandleInvalidProductIdGracefully() {
 ### 4.2 Search Whitespace Handling
 
 **Failing Test:**
+
 - `SearchExtendedTest.shouldTrimLeadingAndTrailingWhitespace`
 
 **Issue:**
@@ -760,14 +793,14 @@ void shouldTrimLeadingAndTrailingWhitespace() {
         // Option 1: Application trims whitespace (preferred)
         var currentUrl = getCurrentUrl();
         var isTrimmed = currentUrl.contains("q=speaker") &&
-                       !currentUrl.contains("q=+speaker+");
+                !currentUrl.contains("q=+speaker+");
 
         // Option 2: Application preserves whitespace (acceptable)
         var hasResults = searchResultsPage().getResultCount() > 0;
 
         softly.assertThat(isTrimmed || hasResults)
-            .as("Should trim whitespace or find results anyway")
-            .isTrue();
+                .as("Should trim whitespace or find results anyway")
+                .isTrue();
     });
 }
 ```
@@ -775,13 +808,13 @@ void shouldTrimLeadingAndTrailingWhitespace() {
 ### 4.3 Implementation Tasks
 
 - [ ] **URL Resilience**: Update `UrlResilienceTest.java`
-  - Adjust expectations for SPA routing behavior
-  - Accept multiple valid outcomes (error page, redirect, home)
-  - Add better logging for debugging
+    - Adjust expectations for SPA routing behavior
+    - Accept multiple valid outcomes (error page, redirect, home)
+    - Add better logging for debugging
 
 - [ ] **Search Fix**: Update `SearchExtendedTest.java`
-  - Handle whitespace trimming or document app behavior
-  - Add flexible assertions
+    - Handle whitespace trimming or document app behavior
+    - Add flexible assertions
 
 - [ ] **Validation**: Run resilience tests
   ```bash
@@ -814,6 +847,7 @@ Based on Firecrawl MCP exploration:
 ```
 
 ### Categories
+
 - Electronics (8 products)
 - Photography (5 products)
 - Accessories (6 products)
@@ -821,6 +855,7 @@ Based on Firecrawl MCP exploration:
 - Studio Recording (16 products)
 
 ### Test Credentials
+
 ```
 Admin Account:
   Email: admin@test.com
@@ -834,6 +869,7 @@ Customer Account:
 ### Key UI Elements
 
 **Home Page:**
+
 - Featured products grid
 - Category cards (Electronics, Photography, etc.)
 - "Start Shopping" button → /products
@@ -842,26 +878,28 @@ Customer Account:
 - Footer component (links, contact info)
 
 **Products Page:**
+
 - Product grid (16 per page)
 - Sorting dropdown (All, Name A-Z)
 - Pagination (Previous, 1, 2, 3, 4, Next)
 - Category filter
 - Search bar
 - Product cards with:
-  - Image
-  - Title
-  - Category
-  - Price
-  - "Details" button → /products/{id}
-  - "Add to Cart" button
+    - Image
+    - Title
+    - Category
+    - Price
+    - "Details" button → /products/{id}
+    - "Add to Cart" button
 
 **Product Detail Page:**
+
 - Product image gallery
 - Title, description, price
 - Quantity selector:
-  - Decrease button
-  - Input field
-  - Increase button
+    - Decrease button
+    - Input field
+    - Increase button
 - "Add to Cart" button
 - Stock status
 - Recommended products section
@@ -869,15 +907,17 @@ Customer Account:
 - Share button
 
 **Login Page:**
+
 - Email input
 - Password input
 - "Sign In" button
 - "Continue as Guest" link
 - Test credentials display:
-  - "Use This Account" buttons for admin/customer
+    - "Use This Account" buttons for admin/customer
 - Error messages for invalid inputs
 
 **Cart Page:**
+
 - Cart items list (empty if not authenticated)
 - Item quantity controls
 - Remove item buttons
@@ -893,6 +933,7 @@ Customer Account:
 ### Chrome DevTools Protocol Warning
 
 **Warning:**
+
 ```
 Unable to find CDP implementation matching 144
 Unable to find version of CDP to use for 144.0.7559.96
@@ -908,6 +949,7 @@ Non-critical but may cause issues with advanced Chrome features.
 Add dependency for Chrome DevTools Protocol v144:
 
 ```xml
+
 <dependency>
     <groupId>org.seleniumhq.selenium</groupId>
     <artifactId>selenium-devtools-v144</artifactId>
@@ -959,11 +1001,13 @@ Phase 4: URL Resilience & Others
 ### Test Execution Commands
 
 **Full Test Suite:**
+
 ```bash
 mvn clean test -Dheadless=true -Dbrowser=chrome
 ```
 
 **Specific Test Classes:**
+
 ```bash
 # Login tests
 mvn test -Dtest=CartWorkflowTest,AuthenticationRedirectTest -Dbrowser=chrome -Dheadless=false
@@ -979,6 +1023,7 @@ mvn test -Dtest=UrlResilienceTest -Dbrowser=chrome -Dheadless=false
 ```
 
 **By Tag:**
+
 ```bash
 # Smoke tests only
 mvn test -Psmoke -Dbrowser=chrome -Dheadless=false
@@ -990,11 +1035,13 @@ mvn test -Pregression -Dbrowser=chrome -Dheadless=false
 ### Debug Mode
 
 **Run with headless=false to observe:**
+
 ```bash
 mvn test -Dtest=FailingTestName -Dbrowser=chrome -Dheadless=false
 ```
 
 **Generate Allure Report:**
+
 ```bash
 mvn allure:serve
 # Or for static report
@@ -1008,23 +1055,27 @@ mvn allure:report
 ### Phase Completion Criteria
 
 **Phase 1 (Login):**
+
 - [ ] CartWorkflowTest passes (all tests)
 - [ ] AuthenticationRedirectTest passes (all tests)
 - [ ] Users can successfully log in with test credentials
 - [ ] Authenticated users can access cart without redirect
 
 **Phase 2 (Quantity):**
+
 - [ ] ProductDetailExtendedTest passes (all tests)
 - [ ] Quantity increase/decrease buttons work
 - [ ] Direct quantity input works
 - [ ] Total price updates correctly with quantity changes
 
 **Phase 3 (Cart Persistence):**
+
 - [ ] CartPersistenceTest passes
 - [ ] Cart items persist after page refresh for authenticated users
 - [ ] Cart behavior is documented for guest users (may not persist)
 
 **Phase 4 (URL Resilience):**
+
 - [ ] UrlResilienceTest passes (all tests)
 - [ ] SearchExtendedTest passes
 - [ ] Application handles edge cases gracefully
@@ -1045,17 +1096,18 @@ mvn allure:report
 
 ### High-Risk Areas
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| Test credentials invalid | HIGH | MEDIUM | Manual testing with MCP to verify |
-| Application bugs (not test issues) | HIGH | LOW | Document and create GitHub issues |
-| Breaking changes during fixes | MEDIUM | LOW | Run full test suite after each fix |
-| SPA routing complexity | MEDIUM | HIGH | Update tests to match actual behavior |
-| React state management issues | MEDIUM | MEDIUM | Use JavaScript triggers for events |
+| Risk                               | Impact | Probability | Mitigation                            |
+|------------------------------------|--------|-------------|---------------------------------------|
+| Test credentials invalid           | HIGH   | MEDIUM      | Manual testing with MCP to verify     |
+| Application bugs (not test issues) | HIGH   | LOW         | Document and create GitHub issues     |
+| Breaking changes during fixes      | MEDIUM | LOW         | Run full test suite after each fix    |
+| SPA routing complexity             | MEDIUM | HIGH        | Update tests to match actual behavior |
+| React state management issues      | MEDIUM | MEDIUM      | Use JavaScript triggers for events    |
 
 ### Rollback Strategy
 
 If fixes cause additional failures:
+
 1. Revert changes to test files
 2. Revert changes to page objects
 3. Document root cause for future investigation
@@ -1068,55 +1120,55 @@ If fixes cause additional failures:
 ### Immediate Actions (Today)
 
 1. **Investigate Login Issue** (P0 - Phase 1)
-   - Use MCP Playwright to manually test login
-   - Verify test credentials work
-   - Document login flow behavior
+    - Use MCP Playwright or `MCP web-reader`to manually test login
+    - Verify test credentials work
+    - Document login flow behavior
 
 2. **Investigate Quantity Selector** (P0 - Phase 2)
-   - Use MCP Playwright to inspect product detail page
-   - Test manual quantity changes
-   - Document working selectors
+    - Use MCP Playwright or `MCP web-reader` to inspect product detail page
+    - Test manual quantity changes
+    - Document working selectors
 
 3. **Create GitHub Issues** (If application bugs found)
-   - Issue 1: Login functionality not working with test credentials
-   - Issue 2: Quantity selector not responding to clicks
-   - Issue 3: Cart not persisting after page refresh
+    - Issue 1: Login functionality not working with test credentials
+    - Issue 2: Quantity selector not responding to clicks
+    - Issue 3: Cart not persisting after page refresh
 
 ### Short-Term Actions (This Week)
 
 4. **Fix Login Functionality** (Phase 1)
-   - Update LoginPage.java based on investigation
-   - Fix CartWorkflowTest.java
-   - Fix AuthenticationRedirectTest.java
-   - Run and verify tests pass
+    - Update LoginPage.java based on investigation
+    - Fix CartWorkflowTest.java
+    - Fix AuthenticationRedirectTest.java
+    - Run and verify tests pass
 
 5. **Fix Quantity Selector** (Phase 2)
-   - Update ProductDetailPage.java
-   - Fix increaseQuantity() and setQuantity()
-   - Add JavaScript event triggers
-   - Run and verify tests pass
+    - Update ProductDetailPage.java
+    - Fix increaseQuantity() and setQuantity()
+    - Add JavaScript event triggers
+    - Run and verify tests pass
 
 6. **Fix Cart Persistence** (Phase 3)
-   - Update CartPersistenceTest.java
-   - Add proper waits after refresh
-   - Handle both auth states
-   - Run and verify tests pass
+    - Update CartPersistenceTest.java
+    - Add proper waits after refresh
+    - Handle both auth states
+    - Run and verify tests pass
 
 ### Medium-Term Actions (Next Sprint)
 
 7. **Fix URL Resilience Tests** (Phase 4)
-   - Update UrlResilienceTest.java
-   - Adjust expectations for SPA behavior
-   - Run and verify tests pass
+    - Update UrlResilienceTest.java
+    - Adjust expectations for SPA behavior
+    - Run and verify tests pass
 
 8. **Fix Search Test** (Phase 4)
-   - Update SearchExtendedTest.java
-   - Handle whitespace trimming
-   - Run and verify tests pass
+    - Update SearchExtendedTest.java
+    - Handle whitespace trimming
+    - Run and verify tests pass
 
 9. **Add CDP Dependency**
-   - Update pom.xml with Selenium DevTools v144
-   - Verify warnings are resolved
+    - Update pom.xml with Selenium DevTools v144
+    - Verify warnings are resolved
 
 ### Long-Term Actions (Future)
 
@@ -1146,6 +1198,7 @@ package org.fugazi.pages;
 
 import io.qameta.allure.Step;
 import lombok.extern.slf4j.Slf4j;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
@@ -1181,6 +1234,7 @@ public class ExamplePage extends BasePage {
 package org.fugazi.tests;
 
 import io.qameta.allure.*;
+
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -1206,8 +1260,8 @@ class ExampleTest extends BaseTest {
         // Assert
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result)
-                .as("Result should match expected")
-                .isEqualTo("expected");
+                    .as("Result should match expected")
+                    .isEqualTo("expected");
         });
 
         log.info("Test completed successfully");
@@ -1243,6 +1297,7 @@ mvn test -Dheadless=true
 ### D. MCP Tools Reference
 
 **For Investigation:**
+
 - `mcp__playwright-mcp-server__browser_navigate` - Navigate to URLs
 - `mcp__playwright-mcp-server__browser_snapshot` - Get accessibility tree
 - `mcp__playwright-mcp-server__browser_click` - Click elements
@@ -1255,11 +1310,15 @@ mvn test -Dheadless=true
 
 ## Conclusion
 
-This comprehensive plan provides a structured approach to fixing all 10 test failures and 1 error. The phases are prioritized by business impact, with Phase 1 (Login) and Phase 2 (Quantity Selector) being critical blockers that must be resolved first.
+This comprehensive plan provides a structured approach to fixing all 10 test failures and 1 error. The phases are
+prioritized by business impact, with Phase 1 (Login) and Phase 2 (Quantity Selector) being critical blockers that must
+be resolved first.
 
-The plan emphasizes **investigation before implementation** - using MCP tools to understand actual application behavior before modifying tests. This ensures we fix the right problem and don't introduce new issues.
+The plan emphasizes **investigation before implementation** - using MCP tools to understand actual application behavior
+before modifying tests. This ensures we fix the right problem and don't introduce new issues.
 
 **Key Principles:**
+
 1. **Understand before fixing** - Use MCP tools to investigate
 2. **Fix root cause, not symptoms** - Update page objects, not just tests
 3. **Match application behavior** - Tests should reflect how app actually works
@@ -1267,7 +1326,8 @@ The plan emphasizes **investigation before implementation** - using MCP tools to
 5. **Validate thoroughly** - Run tests after each fix
 
 **Expected Outcome:**
-After completing all phases, the test suite should achieve ≥95% success rate (176/185 tests passing), with all critical and high-priority issues resolved.
+After completing all phases, the test suite should achieve ≥95% success rate (176/185 tests passing), with all critical
+and high-priority issues resolved.
 
 ---
 

@@ -22,16 +22,36 @@ You are a Selenium WebDriver testing specialist with deep expertise in Java 21, 
 
 ## Project Conventions (MUST FOLLOW)
 
+## Get Context
+
+1. **Instructions**
+- Gather the project instructions and standards: `.github/instructions/selenium-webdriver-java.instructions.md`
+- Guidelines and instructions for AI agents: `AGENTS.md`
+
+2. **Navigate and Explore**
+- Use `MCP Playwright` server to navigate and discover a website
+- Explore the browser snapshot
+- Do not take screenshots unless absolutely necessary
+- Use browser_* tools to navigate and discover interface
+- Thoroughly explore the interface, identifying all interactive elements, forms, navigation paths, and functionality
+
+3. **Analyze User Flows**
+- Map out the primary user journeys and identify critical paths through the application
+- Consider different user types and their typical behaviors
+- Consider to wait for specific items to load
+
 ### Code Style
 
-- Use `var` for local variable type inference
-- Use `Duration.ofSeconds()` for timeouts (Selenium 4 compliance)
-- Use Sequenced Collections methods (`.getFirst()`, `.getLast()`)
-- Use `Pattern` and `Matcher` for text validation
-- Line length: 120 characters
-- Indentation: 4 spaces (no tabs)
-- Braces: Allman style (opening brace on new line)
-- No comments unless explicitly requested
+- **Locators**: Prioritize stable selectors. Use `By.id()`, `By.name()`, or `By.cssSelector("[data-testid='...']")`.
+  Avoid fragile XPaths based on absolute indexes. Use meaningful variable names for `WebElement` instances.
+- **Page Object Model (POM)**: Every test must interact with the UI through Page Object classes. Encapsulate element
+  locators and interaction logic within these classes.
+- **Explicit Waits**: **Never** use `Thread.sleep()`. Rely exclusively on `WebDriverWait` and `ExpectedConditions` to
+  handle asynchronous elements (visibility, clickability, presence).
+- **Fluent Interface**: Design Page Object methods to return `this` or the next `Page` object to allow method chaining,
+  improving readability.
+- **Clean Code**: Follow SOLID principles. Keep tests focused on business logic and Page Objects focused on
+  implementation details.
 
 ### Testing Best Practices
 
@@ -235,11 +255,11 @@ Before finalizing any test, ensure:
 
 ## Build and Test Commands
 
-**Run all tests**: `mvn clean test`
+**Run all tests**: `mvn clean test -Dheadless=true -Dbrowser=chrome`
 
-**Run single test class**: `mvn test -Dtest=ClassName`
+**Run single test class**: `mvn clean test -Dheadless=true -Dbrowser=chrome -Dtest=ClassName`
 
-**Run single test method**: `mvn test -Dtest=ClassName#methodName`
+**Run single test method**: `mvn clean test -Dheadless=true -Dbrowser=chrome -Dtest=ClassName#methodName`
 
 **Run by tag**: `mvn test -Psmoke` or `mvn test -Pregression`
 

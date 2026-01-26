@@ -166,6 +166,19 @@ public abstract class BasePage {
     }
 
     /**
+     * Clear the element and type text into it (utility for forms).
+     *
+     * @param locator the element locator
+     * @param text    the text to type
+     */
+    protected void clearAndType(By locator, String text) {
+        log.debug("Clear and type '{}' into element: {}", text, locator);
+        var element = waitForVisibility(locator);
+        element.clear();
+        element.sendKeys(text);
+    }
+
+    /**
      * Get the text content of an element.
      *
      * @param locator the element locator

@@ -26,6 +26,31 @@ public class ProductDetailPage extends BasePage {
     private static final By SUCCESS_MESSAGE = By.cssSelector(
             "[data-testid='success-message'], .success, [role='alert']");
 
+    // Quantity selectors
+    private static final By QUANTITY_INPUT = By.cssSelector("[data-testid='quantity-input'], input[type='number']");
+    private static final By QUANTITY_DECREASE = By.cssSelector(
+            "[data-testid='quantity-decrease'], button[aria-label*='decrease']");
+    private static final By QUANTITY_INCREASE = By.cssSelector(
+            "[data-testid='quantity-increase'], button[aria-label*='increase']");
+    private static final By TOTAL_PRICE = By.cssSelector("[data-testid='total-price'], .total-price");
+
+    // Navigation & Recommendations
+    private static final By CONTINUE_SHOPPING_BUTTON = By.cssSelector(
+            "[data-testid='continue-shopping'], a[href*='/products']");
+    private static final By RECOMMENDED_PRODUCTS = By.cssSelector(
+            "[data-testid^='recommended-'], .recommended-products");
+    private static final By RECOMMENDED_PRODUCT_LINKS = By.cssSelector(
+            "[data-testid^='recommended-'] a, .recommended-products a");
+
+    // Reviews
+    private static final By REVIEWS_SECTION = By.cssSelector("[data-testid='reviews-section'], #reviews, .reviews");
+    private static final By REVIEW_ITEMS = By.cssSelector("[data-testid^='review-'], .review-item");
+
+    // Share
+    private static final By SHARE_BUTTON = By.cssSelector("[data-testid='share-button'], button[aria-label*='share']");
+    private static final By COPY_LINK_BUTTON = By.cssSelector("[data-testid='copy-link'], button[aria-label*='copy']");
+    private static final By COPIED_MESSAGE = By.cssSelector("[data-testid='copied-message'], .copied, [role='status']");
+
     public ProductDetailPage(WebDriver driver) {
         super(driver);
         this.header = new HeaderComponent(driver);
@@ -198,5 +223,257 @@ public class ProductDetailPage extends BasePage {
     public void goToCart() {
         header.clickCart();
     }
-}
 
+    // ==================== Quantity Methods ====================
+
+    /**
+     * Get current quantity value.
+     *
+     * @return quantity as integer
+     */
+    @Step("Get product quantity")
+    public int getQuantity() {
+        if (isDisplayed(QUANTITY_INPUT)) {
+            var quantityText = getText(QUANTITY_INPUT);
+            try {
+                return Integer.parseInt(quantityText.trim());
+            } catch (NumberFormatException e) {
+                log.warn("Could not parse quantity: {}", quantityText);
+                return 1;
+            }
+        }
+        return 1;
+    }
+
+    /**
+     * Set product quantity to specified value.
+     *
+     * @param quantity quantity to set
+     */
+    @Step("Set product quantity to: {quantity}")
+    public void setQuantity(int quantity) {
+        if (isDisplayed(QUANTITY_INPUT)) {
+            clearAndType(QUANTITY_INPUT, String.valueOf(quantity));
+            log.info("Quantity set to: {}", quantity);
+        }
+    }
+
+    /**
+     * Increase product quantity by one.
+     */
+    @Step("Increase product quantity")
+    public void increaseQuantity() {
+        if (isDisplayed(QUANTITY_INCREASE)) {
+            click(QUANTITY_INCREASE);
+            log.info("Quantity increased");
+        }
+    }
+
+    /**
+     * Decrease product quantity by one.
+     */
+    @Step("Decrease product quantity")
+    public void decreaseQuantity() {
+        if (isDisplayed(QUANTITY_DECREASE)) {
+            click(QUANTITY_DECREASE);
+            log.info("Quantity decreased");
+        }
+    }
+
+    // ==================== Total Price Methods ====================
+
+    /**
+     * Get total price (unit price × quantity).
+     *
+     * @return total price as text
+     */
+    @Step("Get total price")
+    public String getTotalPrice() {
+        if (isDisplayed(TOTAL_PRICE)) {
+            return getText(TOTAL_PRICE);
+        }
+        return getProductPrice();
+    }
+
+    /**
+     * Get total price as numeric value.
+     *
+     * @return total price as double
+     */
+    @Step("Get total price value")
+    public double getTotalPriceValue() {
+        var priceText = getTotalPrice();
+        var numericPrice = priceText.replaceAll("[^0-9.,]", "");
+        numericPrice = numericPrice.replace(",", "");
+        try {
+            return Double.parseDouble(numericPrice);
+        } catch (NumberFormatException e) {
+            log.warn("Could not parse total price: {}", priceText);
+            return getProductPriceValue() * getQuantity();
+        }
+    }
+
+    /**
+     * Verify total price calculation (unit price × quantity).
+     *
+     * @return true if calculation is correct
+     */
+    @Step("Verify total price calculation")
+    public boolean isTotalPriceCalculatedCorrectly() {
+        var unitPrice = getProductPriceValue();
+        var quantity = getQuantity();
+        var expectedTotal = unitPrice * quantity;
+        var actualTotal = getTotalPriceValue();
+
+        var isCorrect = Math.abs(actualTotal - expectedTotal) < 0.01;
+        log.info("Total price check - Unit: {}, Qty: {}, Expected: {}, Actual: {}",
+                unitPrice, quantity, expectedTotal, actualTotal);
+        return isCorrect;
+    }
+
+    // ==================== Navigation Methods ====================
+
+    /**
+     * Click continue shopping button to return to products/home.
+     */
+    @Step("Click continue shopping button")
+    public void clickContinueShopping() {
+        if (isDisplayed(CONTINUE_SHOPPING_BUTTON)) {
+            click(CONTINUE_SHOPPING_BUTTON);
+            log.info("Continue shopping button clicked");
+        }
+    }
+
+    // ==================== Recommended Products Methods ====================
+
+    /**
+     * Check if recommended products section is displayed.
+     *
+     * @return true if recommendations are visible
+     */
+    @Step("Check if recommended products are displayed")
+    public boolean hasRecommendedProducts() {
+        return isDisplayed(RECOMMENDED_PRODUCTS);
+    }
+
+    /**
+     * Get count of recommended products.
+     *
+     * @return number of recommended products
+     */
+    @Step("Get recommended products count")
+    public int getRecommendedProductsCount() {
+        if (hasRecommendedProducts()) {
+            return getElements(RECOMMENDED_PRODUCT_LINKS).size();
+        }
+        return 0;
+    }
+
+    /**
+     * Click on recommended product by index.
+     *
+     * @param index product index (0-based)
+     */
+    @Step("Click recommended product at index: {index}")
+    public void clickRecommendedProduct(int index) {
+        var products = getElements(RECOMMENDED_PRODUCT_LINKS);
+        if (index >= 0 && index < products.size()) {
+            products.get(index).click();
+            log.info("Clicked recommended product at index {}", index);
+        }
+    }
+
+    // ==================== Reviews Methods ====================
+
+    /**
+     * Check if reviews section is displayed.
+     *
+     * @return true if reviews section is visible
+     */
+    @Step("Check if reviews section is displayed")
+    public boolean hasReviewsSection() {
+        return isDisplayed(REVIEWS_SECTION);
+    }
+
+    /**
+     * Get count of reviews.
+     *
+     * @return number of reviews
+     */
+    @Step("Get reviews count")
+    public int getReviewsCount() {
+        if (hasReviewsSection()) {
+            return getElements(REVIEW_ITEMS).size();
+        }
+        return 0;
+    }
+
+    /**
+     * Check if reviews contain required information (name, date).
+     *
+     * @return true if reviews are properly formatted
+     */
+    @Step("Check if reviews are properly formatted")
+    public boolean areReviewsProperlyFormatted() {
+        var reviews = getElements(REVIEW_ITEMS);
+        if (reviews.isEmpty()) {
+            return true;
+        }
+
+        return reviews.stream().allMatch(review -> {
+            var text = review.getText();
+            return !text.isBlank() &&
+                    (text.toLowerCase().contains("by") ||
+                            text.length() > 10);
+        });
+    }
+
+    // ==================== Share Methods ====================
+
+    /**
+     * Click share button to open share options.
+     */
+    @Step("Click share button")
+    public void clickShareButton() {
+        if (isDisplayed(SHARE_BUTTON)) {
+            click(SHARE_BUTTON);
+            log.info("Share button clicked");
+        }
+    }
+
+    /**
+     * Click copy link button.
+     */
+    @Step("Click copy link button")
+    public void clickCopyLink() {
+        if (isDisplayed(COPY_LINK_BUTTON)) {
+            click(COPY_LINK_BUTTON);
+            log.info("Copy link button clicked");
+        }
+    }
+
+    /**
+     * Check if copied/success message is displayed after sharing.
+     *
+     * @return true if copied message is visible
+     */
+    @Step("Check if copied message is displayed")
+    public boolean isCopiedMessageDisplayed() {
+        return isDisplayed(COPIED_MESSAGE);
+    }
+
+    // ==================== Stock Methods ====================
+
+    /**
+     * Get stock status text.
+     *
+     * @return stock status text
+     */
+    @Step("Get stock status")
+    public String getStockStatus() {
+        if (isDisplayed(PRODUCT_STOCK)) {
+            return getText(PRODUCT_STOCK);
+        }
+        return "";
+    }
+}

@@ -529,6 +529,27 @@ public class CartPage extends BasePage {
     }
 
     /**
+     * Public wrapper to wait for the cart page to load.
+     */
+    public void waitForPageLoadPublic() {
+        waitForPageLoad();
+    }
+
+    /**
+     * Returns a list with the quantities of each product in the cart.
+     *
+     * @return list of quantities
+     */
+    public java.util.List<Integer> getItemQuantities() {
+        var items = getCartItems();
+        java.util.List<Integer> quantities = new java.util.ArrayList<>();
+        for (int i = 0; i < items.size(); i++) {
+            quantities.add(getItemQuantity(i));
+        }
+        return quantities;
+    }
+
+    /**
      * Extracts price text from a WebElement.
      *
      * @param priceElement the element containing price

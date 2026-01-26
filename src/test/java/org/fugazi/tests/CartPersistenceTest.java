@@ -71,7 +71,7 @@ class CartPersistenceTest extends BaseTest {
 
         // Act - Refresh page
         refreshPage();
-        cartPage().waitForPageLoad();
+        cartPage().waitForPageLoadPublic();
 
         // Assert
         var finalItemCount = cartPage().getCartItemCount();
@@ -109,13 +109,13 @@ class CartPersistenceTest extends BaseTest {
 
         // Act - Refresh page
         refreshPage();
-        cartPage().waitForPageLoad();
+        cartPage().waitForPageLoadPublic();
 
         // Assert
         var finalQuantities = cartPage().getItemQuantities();
 
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(finalQuantities)
+            ((org.assertj.core.api.AbstractListAssert<?, ?, ?, ?>) softly.assertThat(finalQuantities))
                     .as("Cart quantities should be preserved")
                     .isEqualTo(initialQuantities);
         });
@@ -138,7 +138,7 @@ class CartPersistenceTest extends BaseTest {
         navigateTo("/products");
         productsPage().waitForContentToLoad();
         navigateTo("/cart");
-        cartPage().waitForPageLoad();
+        cartPage().waitForPageLoadPublic();
 
         // Assert
         var finalItemCount = cartPage().getCartItemCount();
@@ -160,11 +160,11 @@ class CartPersistenceTest extends BaseTest {
     void shouldHandleCartWithNoItemsGracefully() {
         // Arrange - Ensure cart is empty (start fresh)
         driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/cart");
-        cartPage().waitForPageLoad();
+        cartPage().waitForPageLoadPublic();
 
         // Act - Refresh page to verify stable empty state
         refreshPage();
-        cartPage().waitForPageLoad();
+        cartPage().waitForPageLoadPublic();
 
         // Assert
         SoftAssertions.assertSoftly(softly -> {

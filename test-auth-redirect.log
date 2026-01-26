@@ -1,0 +1,59 @@
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.google.inject.internal.aop.HiddenClassDefiner (file:/C:/Program%20Files/Maven/lib/guice-5.1.0-classes.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.inject.internal.aop.HiddenClassDefiner
+WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------< org.fugazi:selenium-automation-shop-app >---------------
+[INFO] Building selenium-automation-shop-app 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ selenium-automation-shop-app ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.12.1:compile (default-compile) @ selenium-automation-shop-app ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ selenium-automation-shop-app ---
+[INFO] Copying 4 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.12.1:testCompile (default-testCompile) @ selenium-automation-shop-app ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 42 source files with javac [debug target 21] to target\test-classes
+[WARNING] location of system modules is not set in conjunction with -source 21
+  not setting the location of system modules may lead to class files that cannot run on JDK 21
+    --release 21 is recommended instead of -source 21 -target 21 because it sets the location of system modules automatically
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ selenium-automation-shop-app ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.fugazi.tests.AuthenticationRedirectTest
+[ForkJoinPool-1-worker-1] INFO org.fugazi.tests.AuthenticationRedirectTest - === Setting up test ===
+[ForkJoinPool-1-worker-1] INFO org.fugazi.config.ConfigurationManager - Configuration loaded - URL: https://music-tech-shop.vercel.app, Browser: CHROME, Headless: true
+[ForkJoinPool-1-worker-1] INFO org.fugazi.factory.WebDriverFactory - Creating CHROME driver (headless: true)
+ene 26, 2026 11:23:53 A. M. org.openqa.selenium.devtools.CdpVersionFinder findNearestMatch
+ADVERTENCIA: Unable to find CDP implementation matching 144
+ene 26, 2026 11:23:53 A. M. org.openqa.selenium.chromium.ChromiumDriver lambda$new$5
+ADVERTENCIA: Unable to find version of CDP to use for 144.0.7559.96. You may need to include a dependency on a specific version of the CDP using something similar to `org.seleniumhq.selenium:selenium-devtools-v86:4.27.0` where the version ("v86") matches the version of the chromium-based browser you're using and the version number of the artifact is the same as Selenium's.
+[ForkJoinPool-1-worker-1] INFO org.fugazi.tests.AuthenticationRedirectTest - Successfully navigated to base URL
+[ForkJoinPool-1-worker-1] INFO org.fugazi.tests.AuthenticationRedirectTest - Test setup completed - Browser: CHROME, URL: https://music-tech-shop.vercel.app
+[ForkJoinPool-1-worker-1] INFO org.fugazi.tests.AuthenticationRedirectTest - Unauthenticated cart access redirected to login: https://music-tech-shop.vercel.app/login?redirect=/cart
+[ForkJoinPool-1-worker-1] INFO org.fugazi.tests.AuthenticationRedirectTest - === Tearing down test ===
+[ForkJoinPool-1-worker-1] INFO org.fugazi.tests.AuthenticationRedirectTest - Test teardown completed
+[ForkJoinPool-1-worker-1] INFO org.fugazi.listeners.AllureTestListener - ? Test PASSED: AuthenticationRedirectTest.shouldRedirectToLoginWhenUnauthenticatedUserAccessesCart
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.088 s -- in org.fugazi.tests.AuthenticationRedirectTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  11.689 s
+[INFO] Finished at: 2026-01-26T11:23:56-05:00
+[INFO] ------------------------------------------------------------------------

@@ -86,22 +86,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CHK-01 | Phase 1 | Pending |
-| CHK-02 | Phase 1 | Pending |
-| CHK-03 | Phase 1 | Pending |
-| CHK-04 | Phase 1 | Pending |
+| CHK-01 | Phase 2 | Pending |
+| CHK-02 | Phase 2 | Pending |
+| CHK-03 | Phase 2 | Pending |
+| CHK-04 | Phase 2 | Pending |
 | VAL-01 | Phase 2 | Pending |
 | VAL-02 | Phase 2 | Pending |
-| PAY-01 | Phase 3 | Pending |
-| CNF-01 | Phase 4 | Pending |
-| CNF-02 | Phase 4 | Pending |
-| [REQ-ID] | Phase [N] | Pending |
+| PAY-01 | Phase 2 | Pending |
+| CNF-01 | Phase 3 | Pending |
+| CNF-02 | Phase 3 | Pending |
 
 **Coverage:**
-- v1 requirements: 8 total
-- Mapped to phases: 0
-- Unmapped: 8 ⚠️
+- v1 requirements: 9 total
+- Mapped to phases: 9
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-01-25*
-*Last updated: 2026-01-25 after initial definition*
+*Last updated: 2026-01-25 after roadmap creation*

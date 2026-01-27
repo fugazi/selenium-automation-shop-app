@@ -344,27 +344,6 @@ public class ProductDetailPage extends BasePage {
     }
 
     /**
-     * Decrease product quantity by one.
-     */
-    @Step("Decrease product quantity")
-    public void decreaseQuantity() {
-        if (isDisplayed(QUANTITY_DECREASE)) {
-            var initialQuantity = getQuantity();
-            click(QUANTITY_DECREASE);
-
-            // Wait for quantity to update (React state change)
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-            var newQuantity = getQuantity();
-            log.info("Quantity decreased: {} → {}", initialQuantity, newQuantity);
-        }
-    }
-
-    /**
      * Get total price (unit price × quantity).
      *
      * @return total price as text

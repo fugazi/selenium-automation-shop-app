@@ -1,8 +1,11 @@
 package org.fugazi.tests;
 
+import java.util.Objects;
+
 import io.qameta.allure.*;
 
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -33,9 +36,10 @@ class UrlResilienceTest extends BaseTest {
             var pageSource = driver.getPageSource();
 
             // Application shows 404 in page content (not in URL)
+            Assertions.assertNotNull(pageSource);
             var is404Page = pageSource.contains("404") ||
                           pageSource.toLowerCase().contains("not found") ||
-                          driver.getTitle().toLowerCase().contains("404");
+                          Objects.requireNonNull(driver.getTitle()).toLowerCase().contains("404");
 
             // Or product detail page loads but shows error message
             var isProductDetailPage = productDetailPage().isPageLoaded();
@@ -65,13 +69,13 @@ class UrlResilienceTest extends BaseTest {
 
         // Assert
         SoftAssertions.assertSoftly(softly -> {
-            var currentUrl = getCurrentUrl();
             var pageSource = driver.getPageSource();
 
             // Application shows 404 in page content (not in URL)
+            Assertions.assertNotNull(pageSource);
             var is404Page = pageSource.contains("404") ||
                           pageSource.toLowerCase().contains("not found") ||
-                          driver.getTitle().toLowerCase().contains("404");
+                          Objects.requireNonNull(driver.getTitle()).toLowerCase().contains("404");
 
             var isHandled = is404Page || productDetailPage().isPageLoaded();
 
@@ -218,14 +222,14 @@ class UrlResilienceTest extends BaseTest {
 
         // Assert
         SoftAssertions.assertSoftly(softly -> {
-            var currentUrl = getCurrentUrl();
             var pageSource = driver.getPageSource();
 
             // Application shows 404 in page content (not in URL)
             // Check for 404 in page source, title, or body text
+            Assertions.assertNotNull(pageSource);
             var is404Page = pageSource.contains("404") ||
                           pageSource.toLowerCase().contains("not found") ||
-                          driver.getTitle().toLowerCase().contains("404");
+                          Objects.requireNonNull(driver.getTitle()).toLowerCase().contains("404");
 
             softly.assertThat(is404Page)
                     .as("Should show 404 page for non-existent route")

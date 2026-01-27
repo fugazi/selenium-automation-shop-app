@@ -3,6 +3,15 @@
 Framework de automatización de pruebas E2E para la aplicación Music Tech Shop, construido con Selenium WebDriver, Java
 21 y JUnit 5.
 
+## 🏠 Developer
+* Name: `Douglas Urrea Ocampo`
+* Job: `SDET - Software Developer Engineer in Test`
+* Country: `Colombia`
+* City: `Medellin`
+* E-mail: `douglas@douglasfugazi.co`
+* LinkedIn: [https://www.linkedin.com/in/douglasfugazi](https://www.linkedin.com/in/douglasfugazi)
+* Contact: [https://douglasfugazi.co](https://douglasfugazi.co)
+
 ## 🚀 Características
 
 - **Page Object Model (POM)**: Estructura limpia y mantenible

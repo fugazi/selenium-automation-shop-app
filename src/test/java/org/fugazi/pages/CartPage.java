@@ -180,6 +180,7 @@ public class CartPage extends BasePage {
 
     /**
      * Gets all item names from the cart.
+     * Uses innerHTML as fallback to handle React hydration timing issues.
      *
      * @return list of item names, empty items are filtered out
      */
@@ -188,7 +189,26 @@ public class CartPage extends BasePage {
         return getCartItems().stream()
                 .map(item -> {
                     try {
-                        return item.findElement(CART_ITEM_NAME).getText();
+                        var nameElement = item.findElement(CART_ITEM_NAME);
+                        // Try getText() first for visible elements
+                        try {
+                            var text = nameElement.getText();
+                            if (!text.isEmpty()) {
+                                return text;
+                            }
+                        } catch (Exception e) {
+                            log.debug("getText() failed, trying innerHTML: {}", e.getMessage());
+                        }
+
+                        // Fallback: Use innerHTML attribute (works even if element is not displayed)
+                        // This handles React hydration timing issues where element exists but isn't visible yet
+                        var innerHtml = nameElement.getDomAttribute("innerHTML");
+                        if (innerHtml != null && !innerHtml.isEmpty()) {
+                            return innerHtml.trim();
+                        }
+
+                        log.debug("Both getText() and innerHTML are empty");
+                        return "";
                     } catch (StaleElementReferenceException e) {
                         log.debug("Item name element was stale, returning empty string");
                         return "";

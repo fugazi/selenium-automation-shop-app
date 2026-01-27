@@ -1,13 +1,17 @@
 package org.fugazi.tests;
 
-import io.qameta.allure.*;
+import static org.assertj.core.api.Assertions.within;
+
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.within;
 
 /**
  * Test class for Product Detail functionality.
@@ -55,8 +59,8 @@ class ProductDetailExtendedTest extends BaseTest {
                     .isCloseTo(expectedTotal, within(0.01));
         });
 
-        log.info("Quantity: {} → {}, Total: {} → {}", 
-                 initialQuantity, newQuantity, initialTotal, newTotal);
+        log.info("Quantity: {} → {}, Total: {} → {}",
+                initialQuantity, newQuantity, initialTotal, newTotal);
     }
 
     @Test
@@ -102,25 +106,26 @@ class ProductDetailExtendedTest extends BaseTest {
         // Arrange
         homePage().clickFirstProduct();
         var initialQuantity = productDetailPage().getQuantity();
+        var isDecreaseButtonEnabled = productDetailPage().isDecreaseButtonEnabled();
 
-        // Act - Try to decrease below 1
-        productDetailPage().decreaseQuantity();
-
-        // Assert
-        var finalQuantity = productDetailPage().getQuantity();
-
+        // Act & Assert
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(finalQuantity)
-                    .as("Quantity should not go below 1")
-                    .isGreaterThanOrEqualTo(1);
+            softly.assertThat(initialQuantity)
+                    .as("Initial quantity should be 1")
+                    .isEqualTo(1);
 
-            softly.assertThat(finalQuantity)
-                    .as("Quantity should stay at 1 or minimum allowed")
-                    .isGreaterThanOrEqualTo(1);
+            softly.assertThat(isDecreaseButtonEnabled)
+                    .as("Decrease button should be disabled when quantity is 1")
+                    .isFalse();
+
+            // Verify quantity stays at 1
+            softly.assertThat(productDetailPage().getQuantity())
+                    .as("Quantity should remain at 1")
+                    .isEqualTo(1);
         });
 
-        log.info("Quantity cannot go below 1 - Initial: {}, Final: {}", 
-                 initialQuantity, finalQuantity);
+        log.info("Quantity validation - Decrease button disabled at minimum quantity (1): {}",
+                !isDecreaseButtonEnabled);
     }
 
     @Test
@@ -147,12 +152,10 @@ class ProductDetailExtendedTest extends BaseTest {
                     .isTrue();
         });
 
-        log.info("Stock status: {}, Add to cart enabled: {}", 
-                 productDetailPage().getStockStatus(), 
-                 productDetailPage().isAddToCartButtonEnabled());
+        log.info("Stock status: {}, Add to cart enabled: {}",
+                productDetailPage().getStockStatus(),
+                productDetailPage().isAddToCartButtonEnabled());
     }
-
-    // ==================== Navigation Tests ====================
 
     @Test
     @Tag("regression")
@@ -170,16 +173,16 @@ class ProductDetailExtendedTest extends BaseTest {
         // Assert
         SoftAssertions.assertSoftly(softly -> {
             var currentUrl = getCurrentUrl();
-            
+
             softly.assertThat(currentUrl)
                     .as("URL should change from product detail")
                     .isNotEqualTo(productUrl);
 
             // Should navigate to products page or home
-            var isOnProductsOrHome = currentUrl.contains("/products") || 
-                                    currentUrl.endsWith("/home") ||
-                                    currentUrl.endsWith("/");
-            
+            var isOnProductsOrHome = currentUrl.contains("/products") ||
+                    currentUrl.endsWith("/home") ||
+                    currentUrl.endsWith("/");
+
             softly.assertThat(isOnProductsOrHome)
                     .as("Should navigate to products or home page")
                     .isTrue();
@@ -191,8 +194,6 @@ class ProductDetailExtendedTest extends BaseTest {
 
         log.info("Continue shopping navigated to: {}", getCurrentUrl());
     }
-
-    // ==================== Recommended Products Tests ====================
 
     @Test
     @Tag("regression")
@@ -262,11 +263,9 @@ class ProductDetailExtendedTest extends BaseTest {
                     .isTrue();
         });
 
-        log.info("Navigated from '{}' to '{}'", initialTitle, 
-                 productDetailPage().getProductTitle());
+        log.info("Navigated from '{}' to '{}'", initialTitle,
+                productDetailPage().getProductTitle());
     }
-
-    // ==================== Reviews Tests ====================
 
     @Test
     @Tag("regression")
@@ -301,8 +300,6 @@ class ProductDetailExtendedTest extends BaseTest {
 
         log.info("Reviews section present: {}, Count: {}", hasReviews, reviewCount);
     }
-
-    // ==================== Share Tests ====================
 
     @Test
     @Tag("regression")

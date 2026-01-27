@@ -103,7 +103,12 @@ public class WebDriverFactory {
 
         if (headless) {
             options.addArguments("--headless=new");
-            log.debug("Chrome running in headless mode");
+            // Additional arguments for React applications in headless mode
+            options.addArguments("--disable-software-rasterizer");
+            options.addArguments("--disable-blink-features=AutomationControlled");
+            options.addArguments("--disable-features=IsolateOrigins,site-per-process");
+            options.addArguments("--disable-site-isolation-trials");
+            log.debug("Chrome running in headless mode with React-specific optimizations");
         }
 
         return new ChromeDriver(options);

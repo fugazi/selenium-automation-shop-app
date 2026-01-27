@@ -27,11 +27,12 @@ public class ProductDetailPage extends BasePage {
             "[data-testid='success-message'], .success, [role='alert']");
 
     // Quantity selectors
-    private static final By QUANTITY_INPUT = By.cssSelector("[data-testid='quantity-input'], input[type='number']");
-    private static final By QUANTITY_DECREASE = By.cssSelector(
-            "[data-testid='quantity-decrease'], button[aria-label*='decrease']");
-    private static final By QUANTITY_INCREASE = By.cssSelector(
-            "[data-testid='quantity-increase'], button[aria-label*='increase']");
+    // NOTE: Application uses buttons for quantity, NOT an input field
+    // The quantity value is displayed as text, not in an editable input
+    private static final By QUANTITY_SELECTOR = By.cssSelector("[data-testid='quantity-selector']");
+    private static final By QUANTITY_DECREASE = By.cssSelector("[data-testid='quantity-decrease-button']");
+    private static final By QUANTITY_INCREASE = By.cssSelector("[data-testid='quantity-increase-button']");
+    private static final By QUANTITY_DISPLAY = By.cssSelector("[data-testid='quantity-value'], .quantity-value");
     private static final By TOTAL_PRICE = By.cssSelector("[data-testid='total-price'], .total-price");
 
     // Navigation & Recommendations
@@ -200,6 +201,16 @@ public class ProductDetailPage extends BasePage {
     }
 
     /**
+     * Check if decrease quantity button is enabled.
+     *
+     * @return true if button is enabled
+     */
+    @Step("Check if decrease quantity button is enabled")
+    public boolean isDecreaseButtonEnabled() {
+        return isEnabled(QUANTITY_DECREASE);
+    }
+
+    /**
      * Check if product is in stock.
      *
      * @return true if product is in stock
@@ -224,38 +235,91 @@ public class ProductDetailPage extends BasePage {
         header.clickCart();
     }
 
-    // ==================== Quantity Methods ====================
-
     /**
      * Get current quantity value.
+     * NOTE: Application displays quantity as text within the quantity selector,
+     * not as an input field. We need to extract it from the display.
      *
      * @return quantity as integer
      */
     @Step("Get product quantity")
     public int getQuantity() {
-        if (isDisplayed(QUANTITY_INPUT)) {
-            var quantityText = getText(QUANTITY_INPUT);
-            try {
-                return Integer.parseInt(quantityText.trim());
-            } catch (NumberFormatException e) {
-                log.warn("Could not parse quantity: {}", quantityText);
-                return 1;
+        try {
+            // Try to get quantity from display element
+            if (isDisplayed(QUANTITY_DISPLAY)) {
+                var quantityText = getText(QUANTITY_DISPLAY);
+                try {
+                    return Integer.parseInt(quantityText.trim());
+                } catch (NumberFormatException e) {
+                    log.warn("Could not parse quantity from display: {}", quantityText);
+                }
             }
+
+            // Fallback: try to find quantity in the quantity selector text
+            if (isDisplayed(QUANTITY_SELECTOR)) {
+                var selectorText = getText(QUANTITY_SELECTOR);
+                // Extract first number from the text
+                var matcher = java.util.regex.Pattern.compile("\\d+").matcher(selectorText);
+                if (matcher.find()) {
+                    return Integer.parseInt(matcher.group());
+                }
+            }
+
+            log.warn("Could not find quantity value, returning default 1");
+            return 1;
+        } catch (Exception e) {
+            log.warn("Error getting quantity: {}", e.getMessage());
+            return 1;
         }
-        return 1;
     }
 
     /**
      * Set product quantity to specified value.
+     * NOTE: Since there's no editable input field, we click the increase button
+     * multiple times to reach the desired quantity.
      *
      * @param quantity quantity to set
      */
     @Step("Set product quantity to: {quantity}")
     public void setQuantity(int quantity) {
-        if (isDisplayed(QUANTITY_INPUT)) {
-            clearAndType(QUANTITY_INPUT, String.valueOf(quantity));
-            log.info("Quantity set to: {}", quantity);
+        log.info("Setting quantity to: {} (using increase button)", quantity);
+
+        var currentQuantity = getQuantity();
+        log.debug("Current quantity: {}, Target: {}", currentQuantity, quantity);
+
+        // If we need to increase quantity
+        if (quantity > currentQuantity) {
+            var clicksNeeded = quantity - currentQuantity;
+            for (int i = 0; i < clicksNeeded; i++) {
+                click(QUANTITY_INCREASE);
+                // Small wait to allow React state to update
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            log.info("Clicked increase button {} times", clicksNeeded);
         }
+        // If we need to decrease quantity (only if > 1)
+        else if (quantity < currentQuantity && quantity > 0) {
+            var clicksNeeded = currentQuantity - quantity;
+            for (int i = 0; i < clicksNeeded; i++) {
+                click(QUANTITY_DECREASE);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            log.info("Clicked decrease button {} times", clicksNeeded);
+        } else {
+            log.info("Quantity already set to {}", quantity);
+        }
+
+        // Verify quantity was updated
+        var newQuantity = getQuantity();
+        log.info("Quantity after setting: {}", newQuantity);
     }
 
     /**
@@ -264,8 +328,18 @@ public class ProductDetailPage extends BasePage {
     @Step("Increase product quantity")
     public void increaseQuantity() {
         if (isDisplayed(QUANTITY_INCREASE)) {
+            var initialQuantity = getQuantity();
             click(QUANTITY_INCREASE);
-            log.info("Quantity increased");
+
+            // Wait for quantity to update (React state change)
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            var newQuantity = getQuantity();
+            log.info("Quantity increased: {} → {}", initialQuantity, newQuantity);
         }
     }
 
@@ -275,12 +349,20 @@ public class ProductDetailPage extends BasePage {
     @Step("Decrease product quantity")
     public void decreaseQuantity() {
         if (isDisplayed(QUANTITY_DECREASE)) {
+            var initialQuantity = getQuantity();
             click(QUANTITY_DECREASE);
-            log.info("Quantity decreased");
+
+            // Wait for quantity to update (React state change)
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            var newQuantity = getQuantity();
+            log.info("Quantity decreased: {} → {}", initialQuantity, newQuantity);
         }
     }
-
-    // ==================== Total Price Methods ====================
 
     /**
      * Get total price (unit price × quantity).
@@ -331,8 +413,6 @@ public class ProductDetailPage extends BasePage {
         return isCorrect;
     }
 
-    // ==================== Navigation Methods ====================
-
     /**
      * Click continue shopping button to return to products/home.
      */
@@ -343,8 +423,6 @@ public class ProductDetailPage extends BasePage {
             log.info("Continue shopping button clicked");
         }
     }
-
-    // ==================== Recommended Products Methods ====================
 
     /**
      * Check if recommended products section is displayed.
@@ -382,8 +460,6 @@ public class ProductDetailPage extends BasePage {
             log.info("Clicked recommended product at index {}", index);
         }
     }
-
-    // ==================== Reviews Methods ====================
 
     /**
      * Check if reviews section is displayed.
@@ -428,8 +504,6 @@ public class ProductDetailPage extends BasePage {
         });
     }
 
-    // ==================== Share Methods ====================
-
     /**
      * Click share button to open share options.
      */
@@ -461,8 +535,6 @@ public class ProductDetailPage extends BasePage {
     public boolean isCopiedMessageDisplayed() {
         return isDisplayed(COPIED_MESSAGE);
     }
-
-    // ==================== Stock Methods ====================
 
     /**
      * Get stock status text.

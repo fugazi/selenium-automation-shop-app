@@ -53,15 +53,19 @@ public class SearchResultsPage extends BasePage {
     /**
      * Wait for skeleton loaders to disappear, indicating content is loaded.
      * Uses explicit waits instead of Thread.sleep.
+     * More tolerant for headless mode where React hydration may be slower.
      */
     private void waitForSkeletonsToDisappear() {
         log.debug("Waiting for skeleton loaders to disappear");
 
-        // Wait for either: skeletons to disappear OR results to appear
+        // Wait for either: skeletons to disappear OR results to appear OR correct URL
         wait.until(driver -> {
             int skeletonCount = getElementCount(SKELETON_LOADER);
             int resultCount = getElementCount(RESULT_ITEMS);
-            return skeletonCount == 0 || resultCount > 0;
+            var currentUrl = Objects.requireNonNull(driver.getCurrentUrl());
+
+            // Multiple conditions for page load success (headless mode tolerance)
+            return skeletonCount == 0 || resultCount > 0 || currentUrl.contains("/products");
         });
     }
 

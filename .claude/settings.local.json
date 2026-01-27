@@ -12,7 +12,9 @@
       "mcp__playwright-mcp-server__browser_install",
       "Bash(copy:*)",
       "Bash(powershell:*)",
-      "mcp__firecrawl-mcp-server__firecrawl_crawl"
+      "mcp__firecrawl-mcp-server__firecrawl_crawl",
+      "Bash(find:*)",
+      "Bash(grep:*)"
     ]
   }
 }

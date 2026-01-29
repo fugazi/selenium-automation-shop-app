@@ -137,6 +137,10 @@ El proyecto cuenta con más de **180 tests** cubriendo flujos críticos y casos 
 *   **Utilities**: Lombok, Jackson Databind, Apache HttpClient
 
 ---
+* `mvn clean install -DskipTests`
+* Display dependencies updates: `mvn versions:display-dependency-updates`
+* Update properties: `mvn versions:update-properties`
+---
 
 ## 📝 Licencia
 

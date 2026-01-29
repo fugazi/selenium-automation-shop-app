@@ -8,8 +8,11 @@ import org.assertj.core.api.SoftAssertions;
 import org.fugazi.config.ConfigurationManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -21,6 +24,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 @Epic("Music Tech Shop E2E Tests")
 @Feature("Cart Workflows")
 @DisplayName("Cart Persistence Tests")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CartPersistenceTest extends BaseTest {
 
     private WebDriverWait wait;
@@ -61,6 +65,7 @@ class CartPersistenceTest extends BaseTest {
     @Story("Cart State")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should maintain cart state across navigation")
+    @Order(1)
     void shouldMaintainCartStateAcrossNavigation() {
         // Arrange - Add product
         addProductToCart();
@@ -88,6 +93,7 @@ class CartPersistenceTest extends BaseTest {
     @Story("Cart State")
     @Severity(SeverityLevel.MINOR)
     @DisplayName("Should handle cart with no items gracefully")
+    @Order(2)
     void shouldHandleCartWithNoItemsGracefully() {
         // Arrange - Ensure cart is empty (start fresh)
         driver.get(ConfigurationManager.getInstance().getBaseUrl() + "/cart");
@@ -117,6 +123,7 @@ class CartPersistenceTest extends BaseTest {
     @Story("Cart Persistence")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should preserve cart after browser restart (session)")
+    @Order(3)
     void shouldPreserveCartAfterBrowserRestart() {
         // Arrange - Add product to cart
         addProductToCart();

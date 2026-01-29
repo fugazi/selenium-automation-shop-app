@@ -4,8 +4,11 @@ import io.qameta.allure.*;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 /**
  * Test class for Product Listing functionality.
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.Test;
 @Epic("Music Tech Shop E2E Tests")
 @Feature("Product Listing")
 @DisplayName("Product Listing Tests")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ProductListingTest extends BaseTest {
 
     private static final String PRODUCTS_PATH = "/products";
@@ -24,6 +28,7 @@ class ProductListingTest extends BaseTest {
     @Story("Products Page Load")
     @Severity(SeverityLevel.BLOCKER)
     @DisplayName("Should load products page successfully")
+    @Order(1)
     void shouldLoadProductsPageSuccessfully() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -48,6 +53,7 @@ class ProductListingTest extends BaseTest {
     @Story("Products Page Load")
     @Severity(SeverityLevel.CRITICAL)
     @DisplayName("Should display products in grid")
+    @Order(2)
     void shouldDisplayProductsInGrid() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -75,6 +81,7 @@ class ProductListingTest extends BaseTest {
     @Story("Products Page Load")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should display product titles")
+    @Order(3)
     void shouldDisplayProductTitles() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -104,6 +111,7 @@ class ProductListingTest extends BaseTest {
     @Story("Products Page Load")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should display product prices")
+    @Order(4)
     void shouldDisplayProductPrices() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -128,14 +136,13 @@ class ProductListingTest extends BaseTest {
         log.info("Found {} product prices", prices.size());
     }
 
-    // ==================== Category Filter Tests ====================
-
     @Test
     @Tag("smoke")
     @Tag("regression")
     @Story("Category Filter")
     @Severity(SeverityLevel.CRITICAL)
     @DisplayName("Should filter products by Electronics category")
+    @Order(5)
     void shouldFilterProductsByElectronicsCategory() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -169,6 +176,7 @@ class ProductListingTest extends BaseTest {
     @Story("Category Filter")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should filter products by Photography category")
+    @Order(6)
     void shouldFilterProductsByPhotographyCategory() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -196,6 +204,7 @@ class ProductListingTest extends BaseTest {
     @Story("Category Filter")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should filter products by Accessories category")
+    @Order(7)
     void shouldFilterProductsByAccessoriesCategory() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -223,6 +232,7 @@ class ProductListingTest extends BaseTest {
     @Story("Category Filter")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should clear category filter and show all products")
+    @Order(8)
     void shouldClearCategoryFilterAndShowAllProducts() {
         // Arrange
         navigateTo(PRODUCTS_PATH + "?category=Electronics");
@@ -247,14 +257,13 @@ class ProductListingTest extends BaseTest {
         log.info("Cleared filter - Filtered: {}, All products: {}", filteredCount, allProductsCount);
     }
 
-    // ==================== Search Tests ====================
-
     @Test
     @Tag("smoke")
     @Tag("regression")
     @Story("Product Search")
     @Severity(SeverityLevel.CRITICAL)
     @DisplayName("Should search products on products page")
+    @Order(9)
     void shouldSearchProductsOnProductsPage() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -275,6 +284,7 @@ class ProductListingTest extends BaseTest {
     @Story("Product Search")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should show no results for invalid search")
+    @Order(10)
     void shouldShowNoResultsForInvalidSearch() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -302,13 +312,12 @@ class ProductListingTest extends BaseTest {
         log.info("Searched for '{}' - Found {} products", invalidTerm, productsPage().getProductCount());
     }
 
-    // ==================== Sorting Tests ====================
-
     @Test
     @Tag("regression")
     @Story("Product Sorting")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should apply sort parameter to URL")
+    @Order(11)
     void shouldApplySortParameterToUrl() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -338,6 +347,7 @@ class ProductListingTest extends BaseTest {
     @Story("Product Sorting")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should apply price descending sort to URL")
+    @Order(12)
     void shouldApplyPriceDescendingSortToUrl() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -366,6 +376,7 @@ class ProductListingTest extends BaseTest {
     @Story("Product Sorting")
     @Severity(SeverityLevel.MINOR)
     @DisplayName("Should apply name ascending sort to URL")
+    @Order(13)
     void shouldApplyNameAscendingSortToUrl() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -394,6 +405,7 @@ class ProductListingTest extends BaseTest {
     @Story("Product Sorting")
     @Severity(SeverityLevel.MINOR)
     @DisplayName("Should apply name descending sort to URL")
+    @Order(14)
     void shouldApplyNameDescendingSortToUrl() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -417,13 +429,12 @@ class ProductListingTest extends BaseTest {
         log.info("Applied sort=name-desc - Titles: {}", titles);
     }
 
-    // ==================== Combined Filter Tests ====================
-
     @Test
     @Tag("regression")
     @Story("Combined Filters")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should combine category filter with sorting")
+    @Order(15)
     void shouldCombineCategoryFilterWithSorting() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -452,6 +463,7 @@ class ProductListingTest extends BaseTest {
     @Story("Combined Filters")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should reset all filters")
+    @Order(16)
     void shouldResetAllFilters() {
         // Arrange
         navigateTo(PRODUCTS_PATH + "?category=Electronics&sort=price-desc");
@@ -479,14 +491,13 @@ class ProductListingTest extends BaseTest {
         log.info("All filters reset successfully");
     }
 
-    // ==================== Navigation Tests ====================
-
     @Test
     @Tag("smoke")
     @Tag("regression")
     @Story("Product Navigation")
     @Severity(SeverityLevel.CRITICAL)
     @DisplayName("Should navigate to product detail from listing")
+    @Order(17)
     void shouldNavigateToProductDetailFromListing() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -526,6 +537,7 @@ class ProductListingTest extends BaseTest {
     @Story("Product Navigation")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should navigate to product detail by index")
+    @Order(18)
     void shouldNavigateToProductDetailByIndex() {
         // Arrange
         navigateTo(PRODUCTS_PATH);
@@ -565,6 +577,7 @@ class ProductListingTest extends BaseTest {
     @Story("Browser Navigation")
     @Severity(SeverityLevel.MINOR)
     @DisplayName("Should preserve filters after page refresh")
+    @Order(19)
     void shouldPreserveFiltersAfterPageRefresh() {
         // Arrange
         navigateTo(PRODUCTS_PATH + "?category=Electronics");

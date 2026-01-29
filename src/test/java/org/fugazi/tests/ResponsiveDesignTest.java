@@ -5,8 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.openqa.selenium.Dimension;
@@ -22,6 +25,7 @@ import org.openqa.selenium.TimeoutException;
 @Epic("Music Tech Shop")
 @Feature("Responsive Design")
 @DisplayName("Responsive Design Tests")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ResponsiveDesignTest extends BaseTest {
     private static final Dimension MOBILE_MEDIUM = new Dimension(375, 667);  // iPhone 6/7/8
     private static final Dimension TABLET = new Dimension(768, 1024);        // iPad
@@ -32,6 +36,7 @@ class ResponsiveDesignTest extends BaseTest {
     @Story("Mobile Layout")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should render correctly on mobile viewport")
+    @Order(1)
     void shouldRenderCorrectlyOnMobileViewport() {
         // Arrange
         setViewportSize(MOBILE_MEDIUM);
@@ -67,6 +72,7 @@ class ResponsiveDesignTest extends BaseTest {
     @Story("Mobile Layout")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should hide desktop navigation on mobile")
+    @Order(2)
     void shouldHideDesktopNavigationOnMobile() {
         // Arrange
         setViewportSize(MOBILE_MEDIUM);
@@ -87,13 +93,12 @@ class ResponsiveDesignTest extends BaseTest {
         });
     }
 
-    // ==================== TABLET VIEWPORT TESTS ====================
-
     @Test
     @Tag("regression")
     @Story("Tablet Layout")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should render correctly on tablet viewport")
+    @Order(3)
     void shouldRenderCorrectlyOnTabletViewport() {
         // Arrange
         setViewportSize(TABLET);
@@ -116,13 +121,12 @@ class ResponsiveDesignTest extends BaseTest {
         log.info("Tablet viewport rendered correctly");
     }
 
-    // ==================== DESKTOP VIEWPORT TESTS ====================
-
     @Test
     @Tag("regression")
     @Story("Desktop Layout")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should render correctly on desktop viewport")
+    @Order(4)
     void shouldRenderCorrectlyOnDesktopViewport() {
         // Arrange
         setViewportSize(DESKTOP);
@@ -150,8 +154,6 @@ class ResponsiveDesignTest extends BaseTest {
         log.info("Desktop viewport rendered correctly");
     }
 
-    // ==================== PRODUCT GRID RESPONSIVE TESTS ====================
-
     @ParameterizedTest(name = "Product grid on {0}x{1} viewport")
     @CsvSource({
             "375, 667, mobile",
@@ -162,6 +164,7 @@ class ResponsiveDesignTest extends BaseTest {
     @Story("Product Grid")
     @Severity(SeverityLevel.NORMAL)
     @DisplayName("Should display product grid responsively")
+    @Order(5)
     void shouldDisplayProductGridResponsively(int width, int height, String deviceType) {
         // Arrange
         setViewportSize(new Dimension(width, height));
@@ -180,13 +183,12 @@ class ResponsiveDesignTest extends BaseTest {
         log.info("Product grid displayed correctly on {} ({}x{})", deviceType, width, height);
     }
 
-    // ==================== VIEWPORT RESIZE TESTS ====================
-
     @Test
     @Tag("regression")
     @Story("Viewport Resize")
     @Severity(SeverityLevel.MINOR)
     @DisplayName("Should handle viewport resize from mobile to desktop")
+    @Order(6)
     void shouldHandleViewportResizeFromMobileToDesktop() {
         // Arrange - start on mobile
         setViewportSize(MOBILE_MEDIUM);
@@ -215,6 +217,7 @@ class ResponsiveDesignTest extends BaseTest {
     @Story("Viewport Resize")
     @Severity(SeverityLevel.MINOR)
     @DisplayName("Should handle viewport resize from desktop to mobile")
+    @Order(7)
     void shouldHandleViewportResizeFromDesktopToMobile() {
         // Arrange - start on desktop
         setViewportSize(DESKTOP);
@@ -237,8 +240,6 @@ class ResponsiveDesignTest extends BaseTest {
 
         log.info("Desktop to mobile resize handled correctly");
     }
-
-    // ==================== HELPER METHODS ====================
 
     private void setViewportSize(Dimension size) {
         driver.manage().window().setSize(size);

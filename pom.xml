@@ -20,6 +20,8 @@
         <!-- Versions -->
         <selenium.version>4.40.0</selenium.version>
         <junit.version>5.14.2</junit.version>
+        <junit.jupiter.version>5.14.2</junit.jupiter.version>
+        <junit.platform.version>1.14.2</junit.platform.version>
         <lombok.version>1.18.42</lombok.version>
         <assertj.version>3.27.7</assertj.version>
         <slf4j.version>2.0.17</slf4j.version>
@@ -32,6 +34,7 @@
 
         <!-- Plugin Versions -->
         <maven.surefire.version>3.5.4</maven.surefire.version>
+        <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
         <allure.maven.version>2.17.0</allure.maven.version>
         <aspectj.version>1.9.22.1</aspectj.version>
     </properties>
@@ -61,6 +64,26 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- JUnit Jupiter API y Engine -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- JUnit Platform Launcher -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>${junit.platform.version}</version>
             <scope>test</scope>
         </dependency>
 

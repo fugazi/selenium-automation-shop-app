@@ -17,6 +17,11 @@ on:
           - smoke
           - regression
 
+# Permisos mínimos: allow writing pages for gh-pages deploy
+permissions:
+  contents: read
+  pages: write
+
 env:
   JAVA_VERSION: '21'
   MAVEN_OPTS: '-Xmx1024m'
@@ -25,27 +30,28 @@ jobs:
   test:
     name: Run Selenium Tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Optional: extend this list to run tests across browsers (e.g., chrome, firefox)
+        browser: [chrome]
+    env:
+      BROWSER: ${{ matrix.browser }}
+      TEST_SUITE: ${{ github.event.inputs.test_suite || 'all' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
+      - name: Set up JDK ${{ env.JAVA_VERSION }} and enable Maven cache
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
-          cache: maven
+          cache: 'maven'
+          cache-dependency-path: '**/pom.xml'
 
-      - name: Install Edge Browser
-        run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
-          sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
-          sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge.list'
-          sudo apt-get update
-          sudo apt-get install -y microsoft-edge-stable
-
-      - name: Cache Maven dependencies
+      - name: Restore additional Maven cache (fallback)
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
@@ -53,51 +59,67 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Run All Tests
-        if: github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
-        run: mvn clean test -Dheadless=true -Dbrowser=edge
-        continue-on-error: true
+      - name: Install prerequisites and Google Chrome
+        run: |
+          if command -v google-chrome >/dev/null 2>&1 || command -v google-chrome-stable >/dev/null 2>&1; then
+            echo "Google Chrome is already installed:"
+            google-chrome --version || google-chrome-stable --version || true
+          else
+            echo "Google Chrome not found. Installing minimal dependencies and Chrome..."
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends curl ca-certificates gnupg
+            # Add Google's signing key and repository in a keyring-friendly way
+            curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google.gpg
+            echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends google-chrome-stable
+          fi
 
-      - name: Run Smoke Tests
-        if: github.event.inputs.test_suite == 'smoke'
-        run: mvn clean test -Dheadless=true -Dbrowser=edge -Dgroups=smoke
-        continue-on-error: true
+      - name: Show browser version (sanity check)
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then
+            google-chrome --version || true
+          elif command -v google-chrome-stable >/dev/null 2>&1; then
+            google-chrome-stable --version || true
+          else
+            echo "Google Chrome not found"
+          fi
 
-      - name: Run Regression Tests
-        if: github.event.inputs.test_suite == 'regression'
-        run: mvn clean test -Dheadless=true -Dbrowser=edge -Dgroups=regression
-        continue-on-error: true
+      - name: Run Tests
+        # keep tests failing the job on failures (no continue-on-error)
+        timeout-minutes: 60
+        run: |
+          echo "Test suite selected: $TEST_SUITE"
+          if [ "$TEST_SUITE" = "smoke" ]; then
+            mvn clean test -Dheadless=true -Dbrowser=${{ env.BROWSER }} -Dgroups=smoke
+          elif [ "$TEST_SUITE" = "regression" ]; then
+            mvn clean test -Dheadless=true -Dbrowser=${{ env.BROWSER }} -Dgroups=regression
+          else
+            mvn clean test -Dheadless=true -Dbrowser=${{ env.BROWSER }}
+          fi
 
       - name: Generate Allure Report
         if: always()
-        run: mvn allure:report
+        run: mvn allure:report || true
 
       - name: Upload Allure Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
-          path: target/allure-results
-          retention-days: 30
+          path: target/allure-results/**
+          retention-days: 2
 
       - name: Upload Allure Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: target/allure-report
-          retention-days: 30
-
-      - name: Upload Screenshots
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: target/screenshots
-          retention-days: 30
+          path: target/allure-report/**
+          retention-days: 2
 
       - name: Deploy Allure Report to GitHub Pages
-        if: always() && github.ref == 'refs/heads/main'
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -108,34 +130,39 @@ jobs:
     name: Smoke Tests (Quick Check)
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
+      - name: Set up JDK ${{ env.JAVA_VERSION }} and enable Maven cache
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
-          cache: maven
+          cache: 'maven'
+          cache-dependency-path: '**/pom.xml'
 
-      - name: Install Edge Browser
+      - name: Install prerequisites and Google Chrome (lighter for PR checks)
         run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
-          sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
-          sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge.list'
-          sudo apt-get update
-          sudo apt-get install -y microsoft-edge-stable
+          if command -v google-chrome >/dev/null 2>&1 || command -v google-chrome-stable >/dev/null 2>&1; then
+            echo "Google Chrome already available"
+            google-chrome --version || google-chrome-stable --version || true
+          else
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends curl ca-certificates gnupg
+            curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google.gpg
+            echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends google-chrome-stable
+          fi
 
       - name: Run Smoke Tests
-        run: mvn clean test -Dheadless=true -Dbrowser=edge -Dgroups=smoke
+        run: mvn clean test -Dheadless=true -Dbrowser=chrome -Dgroups=smoke
 
-      - name: Upload Test Results
+      - name: Upload Test Results (PR failures)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: smoke-test-results
-          path: target/allure-results
-          retention-days: 7
-
+          path: target/allure-results/**
+          retention-days: 2

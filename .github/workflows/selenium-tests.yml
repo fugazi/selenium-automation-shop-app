@@ -118,14 +118,6 @@ jobs:
           path: target/allure-report/**
           retention-days: 2
 
-      - name: Deploy Allure Report to GitHub Pages
-        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: target/allure-report
-          destination_dir: allure-report
-
   smoke-tests:
     name: Smoke Tests (Quick Check)
     runs-on: ubuntu-latest

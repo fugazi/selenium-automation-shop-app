@@ -52,7 +52,7 @@ jobs:
           cache-dependency-path: '**/pom.xml'
 
       - name: Restore additional Maven cache (fallback)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}

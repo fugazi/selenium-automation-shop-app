@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up JDK ${{ env.JAVA_VERSION }} and enable Maven cache
         uses: actions/setup-java@v4
@@ -124,7 +124,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up JDK ${{ env.JAVA_VERSION }} and enable Maven cache
         uses: actions/setup-java@v4

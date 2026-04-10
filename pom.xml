@@ -28,7 +28,7 @@
         <javafaker.version>1.0.2</javafaker.version>
         <jackson.version>2.21.2</jackson.version>
         <httpclient.version>5.6</httpclient.version>
-        <allure.version>2.33.0</allure.version>
+        <allure.version>2.34.0</allure.version>
         <allure.commandline.version>2.29.0</allure.commandline.version>
         <restassured.version>6.0.0</restassured.version>
 

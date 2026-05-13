@@ -18,7 +18,7 @@
         <headless>true</headless>
 
         <!-- Versions -->
-        <selenium.version>4.43.0</selenium.version>
+        <selenium.version>4.44.0</selenium.version>
         <junit.version>6.1.0-RC1</junit.version>
         <junit.jupiter.version>6.1.0-RC1</junit.jupiter.version>
         <junit.platform.version>6.1.0-RC1</junit.platform.version>

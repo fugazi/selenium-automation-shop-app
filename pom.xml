@@ -19,7 +19,7 @@
 
         <!-- Versions -->
         <selenium.version>4.44.0</selenium.version>
-        <junit.version>6.1.0-RC1</junit.version>
+        <junit.version>6.1.0</junit.version>
         <junit.jupiter.version>6.1.0-RC1</junit.jupiter.version>
         <junit.platform.version>6.1.0</junit.platform.version>
         <lombok.version>1.18.46</lombok.version>

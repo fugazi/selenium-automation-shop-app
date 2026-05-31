@@ -14,7 +14,8 @@
       "Bash(powershell:*)",
       "mcp__firecrawl-mcp-server__firecrawl_crawl",
       "Bash(find:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git pull *)"
     ]
   }
 }

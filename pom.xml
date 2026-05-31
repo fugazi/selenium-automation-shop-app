@@ -29,12 +29,12 @@
         <jackson.version>2.21.4</jackson.version>
         <httpclient.version>5.6.1</httpclient.version>
         <allure.version>2.35.2</allure.version>
-        <allure.commandline.version>2.29.0</allure.commandline.version>
+        <allure.commandline.version>2.35.2</allure.commandline.version>
         <restassured.version>6.0.0</restassured.version>
 
         <!-- Plugin Versions -->
-        <maven.surefire.version>3.5.4</maven.surefire.version>
-        <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
+        <maven.surefire.version>3.5.6</maven.surefire.version>
+        <maven.surefire.plugin.version>3.5.6</maven.surefire.plugin.version>
         <allure.maven.version>3.0.1</allure.maven.version>
         <aspectj.version>1.9.22.1</aspectj.version>
     </properties>
@@ -171,7 +171,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.6</version>
+                <version>${maven.surefire.plugin.version}</version>
                 <configuration>
                     <parallel>methods</parallel>
                     <threadCount>4</threadCount>

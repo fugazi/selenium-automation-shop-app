@@ -34,7 +34,7 @@
 
         <!-- Plugin Versions -->
         <maven.surefire.version>3.6.0-M1</maven.surefire.version>
-        <maven.surefire.plugin.version>3.6.0-M1</maven.surefire.plugin.version>
+        <maven.surefire.plugin.version>3.6.0</maven.surefire.plugin.version>
         <allure.maven.version>3.0.3</allure.maven.version>
         <aspectj.version>1.9.22.1</aspectj.version>
     </properties>

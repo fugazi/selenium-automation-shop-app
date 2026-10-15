@@ -1,6 +1,8 @@
 name: Selenium Tests CI
 
 on:
+  pull_request:
+    branches: [ main, master ]
   workflow_dispatch:
     inputs:
       test_suite:
@@ -26,6 +28,7 @@ jobs:
   test:
     name: Run Selenium Tests
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:

@@ -130,7 +130,9 @@ class CartPersistenceTest extends BaseTest {
         navigateToCart();
         var initialItemCount = cartPage().getCartItemCount();
 
-        // Act - Verify cart state is maintained
+        // Act - Reload session state and verify cart state is maintained
+        refreshPage();
+        cartPage().waitForPageLoadPublic();
         var finalItemCount = cartPage().getCartItemCount();
 
         // Assert

@@ -24,7 +24,7 @@ public class ProductDetailPage extends BasePage {
     private static final By ADD_TO_CART_BUTTON = By.cssSelector("[data-testid='add-to-cart-button']");
     private static final By PRODUCT_STOCK = By.cssSelector("[data-testid='product-stock-status']");
     private static final By SUCCESS_MESSAGE = By.cssSelector(
-            "[data-testid='success-message'], .success, [role='alert']");
+            "[data-testid='success-message'], .success, [role='alert'], [aria-label*='Notifications'] li[data-state='open']");
 
     // Quantity selectors
     // NOTE: Application uses buttons for quantity, NOT an input field

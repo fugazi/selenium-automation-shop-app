@@ -140,7 +140,7 @@
         <!-- Allure JUnit 5 -->
         <dependency>
             <groupId>io.qameta.allure</groupId>
-            <artifactId>allure-junit5</artifactId>
+            <artifactId>allure-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -174,8 +174,8 @@
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
                     <parallel>methods</parallel>
-                    <threadCount>4</threadCount>
-                    <forkCount>2</forkCount>
+                    <threadCount>2</threadCount>
+                    <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
                     <testFailureIgnore>false</testFailureIgnore>
                     <systemPropertyVariables>
@@ -187,6 +187,9 @@
                         <configurationParameters>
                             junit.jupiter.execution.parallel.enabled = true
                             junit.jupiter.execution.parallel.mode.default = concurrent
+                            junit.jupiter.execution.parallel.config.strategy = fixed
+                            junit.jupiter.execution.parallel.config.fixed.parallelism = 2
+                            junit.jupiter.execution.parallel.config.fixed.max-pool-size = 2
                         </configurationParameters>
                     </properties>
                 </configuration>

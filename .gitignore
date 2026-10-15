@@ -37,4 +37,8 @@ build/
 .vscode/
 
 ### Mac OS ###
-.DS_Store.planning/
+.DS_Store
+.allure/
+.claude/
+.idea/
+pom.xml.versionsBackup

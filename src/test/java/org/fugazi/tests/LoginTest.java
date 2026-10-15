@@ -136,9 +136,11 @@ class LoginTest extends BaseTest {
         // Assert - In demo app, quick button may not actually redirect
         // Verify button is clickable and action completes without error
         SoftAssertions.assertSoftly(softly -> {
-            // The button should be clickable (test passes if no exception thrown)
-            softly.assertThat(true)
-                    .as("Admin quick button should be clickable")
+            softly.assertThat(loginPage().isOnLoginPage())
+                    .as("Should redirect away from login page after admin login")
+                    .isFalse();
+            softly.assertThat(homePage().isPageLoaded())
+                    .as("Home page should load after admin login")
                     .isTrue();
         });
 
@@ -157,9 +159,11 @@ class LoginTest extends BaseTest {
 
         // Assert - In demo app, quick button may not actually redirect
         SoftAssertions.assertSoftly(softly -> {
-            // The button should be clickable (test passes if no exception thrown)
-            softly.assertThat(true)
-                    .as("Customer quick button should be clickable")
+            softly.assertThat(loginPage().isOnLoginPage())
+                    .as("Should redirect away from login page after customer login")
+                    .isFalse();
+            softly.assertThat(homePage().isPageLoaded())
+                    .as("Home page should load after customer login")
                     .isTrue();
         });
 

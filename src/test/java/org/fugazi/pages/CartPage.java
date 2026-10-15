@@ -24,10 +24,6 @@ public class CartPage extends BasePage {
     private static final By CART_ITEMS = By.cssSelector("[data-testid^='cart-item-'][role='article']");
     private static final By CART_ITEM_NAME = By.cssSelector("a[data-testid^='cart-item-product-name']");
 
-    static {
-        By.cssSelector("img[data-testid^='cart-item-product-image']");
-        By.cssSelector("p[data-testid^='cart-item-category']");
-    }
 
     private static final By CART_ITEM_QUANTITY_DISPLAY = By.cssSelector("span[data-testid^='cart-quantity-']");
     private static final By CART_ITEM_DECREASE_BUTTON = By.cssSelector(
@@ -39,16 +35,9 @@ public class CartPage extends BasePage {
 
     // Order Summary
 
-    static {
-        By.cssSelector("[data-testid^='cart-item-'][role='article']");
-        By.cssSelector("div[data-testid='order-summary-card']");
-    }
 
     private static final By CART_SUBTOTAL = By.cssSelector("div[data-testid='cart-subtotal']");
 
-    static {
-        By.cssSelector("div[data-testid='free-shipping-threshold']");
-    }
 
     private static final By CART_TOTAL = By.cssSelector("div[data-testid='cart-total']");
     private static final By CHECKOUT_BUTTON = By.cssSelector("button[data-testid='checkout-button']");
@@ -58,9 +47,6 @@ public class CartPage extends BasePage {
     private static final By CART_TITLE = By.cssSelector("h1, h2, h3[data-testid^='cart-title']");
     private static final By EMPTY_CART_MESSAGE = By.cssSelector("[data-testid='empty-cart'], [class*='empty-cart']");
 
-    static {
-        By.cssSelector("[data-testid='login-form']");
-    }
 
     /**
      * Initializes the CartPage with a WebDriver instance.
@@ -145,7 +131,7 @@ public class CartPage extends BasePage {
     @Step("Get cart page title")
     public String getCartTitle() {
         if (isCartEmpty()) {
-            return "Your Items (1)";
+            return "Your Items (0)";
         }
 
         if (isDisplayed(CART_TITLE)) {
